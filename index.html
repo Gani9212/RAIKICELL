@@ -334,19 +334,19 @@
 
   // Load data from localStorage
   function loadData() {
-    transaksiKonter = JSON.parse(localStorage.getItem('transaksiKonter') || '[]');
-    transaksiWarung = JSON.parse(localStorage.getItem('transaksiWarung') || '[]');
-    pengeluaran = JSON.parse(localStorage.getItem('pengeluaran') || '[]');
-    tarikTunai = JSON.parse(localStorage.getItem('tarikTunai') || '[]');
-    daftarBarangAdmin = JSON.parse(localStorage.getItem('daftarBarangAdmin') || '[]');
+    transaksiKonter = JSON.parse(('transaksiKonter') || '[]');
+    transaksiWarung = JSON.parse(('transaksiWarung') || '[]');
+    pengeluaran = JSON.parse(('pengeluaran') || '[]');
+    tarikTunai = JSON.parse(('tarikTunai') || '[]');
+    daftarBarangAdmin = JSON.parse(('daftarBarangAdmin') || '[]');
   }
   // Save data to localStorage
   function saveData() {
-    localStorage.setItem('transaksiKonter', JSON.stringify(transaksiKonter));
-    localStorage.setItem('transaksiWarung', JSON.stringify(transaksiWarung));
-    localStorage.setItem('pengeluaran', JSON.stringify(pengeluaran));
-    localStorage.setItem('tarikTunai', JSON.stringify(tarikTunai));
-    localStorage.setItem('daftarBarangAdmin', JSON.stringify(daftarBarangAdmin));
+    ('transaksiKonter', JSON.stringify(transaksiKonter));
+    ('transaksiWarung', JSON.stringify(transaksiWarung));
+    ('pengeluaran', JSON.stringify(pengeluaran));
+    ('tarikTunai', JSON.stringify(tarikTunai));
+    ('daftarBarangAdmin', JSON.stringify(daftarBarangAdmin));
   }
 
   // Format number to rupiah currency style
