@@ -319,8 +319,27 @@
 
 </div>
 
-<script>
-(() => {
+<!-- Pastikan kamu sudah include Firebase SDK di HTML atau gunakan bundler yang support ES modules -->
+<script type="module">
+  // Import Firebase SDK modul
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+  // Konfigurasi Firebase kamu
+  const firebaseConfig = {
+    apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
+    authDomain: "raikicell.firebaseapp.com",
+    projectId: "raikicell",
+    storageBucket: "raikicell.firebasestorage.app",
+    messagingSenderId: "648628376778",
+    appId: "1:648628376778:web:961ca9084abeeb206bd033",
+    measurementId: "G-JG8V2E41XR"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+
   // Data arrays
   let transaksiKonter = [];
   let transaksiWarung = [];
@@ -328,26 +347,55 @@
   let tarikTunai = [];
   let daftarBarangAdmin = [];
 
-  // DOM shortcuts
-  const tabButtons = document.querySelectorAll('#sidebar .tab-btn');
-  const tabContents = document.querySelectorAll('.tab-content');
-
-  // Load data from localStorage
-  function loadData() {
-    transaksiKonter = JSON.parse(('transaksiKonter') || '[]');
-    transaksiWarung = JSON.parse(('transaksiWarung') || '[]');
-    pengeluaran = JSON.parse(('pengeluaran') || '[]');
-    tarikTunai = JSON.parse(('tarikTunai') || '[]');
-    daftarBarangAdmin = JSON.parse(('daftarBarangAdmin') || '[]');
-  }
-  // Save data to localStorage
+  // Fungsi simpan data ke Firebase
   function saveData() {
-    ('transaksiKonter', JSON.stringify(transaksiKonter));
-    ('transaksiWarung', JSON.stringify(transaksiWarung));
-    ('pengeluaran', JSON.stringify(pengeluaran));
-    ('tarikTunai', JSON.stringify(tarikTunai));
-    ('daftarBarangAdmin', JSON.stringify(daftarBarangAdmin));
+    set(ref(database, 'data/transaksiKonter'), transaksiKonter);
+    set(ref(database, 'data/transaksiWarung'), transaksiWarung);
+    set(ref(database, 'data/pengeluaran'), pengeluaran);
+    set(ref(database, 'data/tarikTunai'), tarikTunai);
+    set(ref(database, 'data/daftarBarangAdmin'), daftarBarangAdmin);
   }
+
+  // Fungsi load data dari Firebase, async
+  async function loadData() {
+    const dbRef = ref(database, 'data');
+    try {
+      const snapshot = await get(dbRef);
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        transaksiKonter = data.transaksiKonter || [];
+        transaksiWarung = data.transaksiWarung || [];
+        pengeluaran = data.pengeluaran || [];
+        tarikTunai = data.tarikTunai || [];
+        daftarBarangAdmin = data.daftarBarangAdmin || [];
+      } else {
+        transaksiKonter = [];
+        transaksiWarung = [];
+        pengeluaran = [];
+        tarikTunai = [];
+        daftarBarangAdmin = [];
+      }
+      updateUIAfterLoad(); // panggil fungsi update tampilan setelah load data
+    } catch (error) {
+      console.error("Error loading data:", error);
+    }
+  }
+
+  // Contoh fungsi update UI setelah data load, sesuaikan dengan kode kamu
+  function updateUIAfterLoad() {
+    // contoh update UI transaksi konter dll
+    console.log("Data berhasil dimuat dari Firebase:", transaksiKonter, transaksiWarung, pengeluaran, tarikTunai, daftarBarangAdmin);
+    // panggil render ulang tampilan, update tabel, dsb sesuai kode kamu
+  }
+
+  // Contoh panggil loadData saat halaman siap
+  window.addEventListener('DOMContentLoaded', () => {
+    loadData();
+  });
+
+  // Contoh setelah transaksi berubah panggil saveData()
+  // transaksiKonter.push({ /* data baru */ });
+  // saveData();
 
   // Format number to rupiah currency style
   function formatRupiah(num) {
