@@ -1,340 +1,150 @@
-<script type="module">
-// Import Firebase SDK
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aplikasi Kasir RaikiCell</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { display: flex; min-height: 100vh; }
+    aside { width: 220px; background: #2c3e50; color: white; padding: 20px; }
+    aside h2 { margin-bottom: 20px; }
+    aside button { display: block; width: 100%; margin: 5px 0; padding: 10px; background: #34495e; border: none; color: white; cursor: pointer; text-align: left; }
+    aside button:hover { background: #3d566e; }
+    main { flex: 1; padding: 20px; overflow-y: auto; }
+    section { margin-bottom: 30px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    table, th, td { border: 1px solid #ccc; }
+    th, td { padding: 8px; text-align: left; }
+    input, select { padding: 6px; width: 100%; margin: 5px 0; }
+    button.submit-btn { background: #27ae60; color: white; border: none; padding: 8px 12px; cursor: pointer; margin-top: 10px; }
+    button.submit-btn:hover { background: #219150; }
+    #loginOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+    #loginBox { background: white; padding: 20px; border-radius: 8px; width: 300px; box-shadow: 0 0 10px rgba(0,0,0,0.3); }
+    #loginBox input { width: 100%; margin: 10px 0; padding: 10px; }
+    #loginBox button { width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+    #loginBox button:hover { background: #45a049; }
+    #errorMsg { color: red; font-size: 0.9em; height: 1.2em; }
+    body.not-logged-in > *:not(#loginOverlay) { display: none !important; }
+  </style>
+</head>
+<body>
+  <aside>
+    <h2>Menu</h2>
+    <button onclick="showSection('formKonter')">Transaksi Konter</button>
+    <button onclick="showSection('formWarung')">Transaksi Warung</button>
+    <button onclick="showSection('formTarikTunai')">Tarik Tunai</button>
+    <button onclick="showSection('formPengeluaran')">Pengeluaran</button>
+    <button onclick="showSection('formAdmin')">Admin Barang</button>
+    <button onclick="showSection('laporanHarian')">Laporan Harian</button>
+    <button onclick="showSection('laporanBulanan')">Laporan Bulanan</button>
+  </aside>
+  <main>
+    <section id="formKonter">
+      <h3>Transaksi Konter</h3>
+      <form id="konterForm">
+        <input type="text" id="namaBarangKonter" placeholder="Nama Barang" required />
+        <input type="number" id="hargaKonter" placeholder="Harga" required />
+        <input type="number" id="feeKonter" placeholder="Fee" required />
+        <button class="submit-btn" type="submit">Simpan</button>
+      </form>
+      <div id="listKonter"></div>
+    </section>
+    <!-- Tambahkan section lain seperti Warung, Tarik Tunai, dsb di sini jika perlu -->
+  </main>
 
-// Firebase config dan init
-const firebaseConfig = {
-  apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
-  authDomain: "raikicell.firebaseapp.com",
-  projectId: "raikicell",
-  storageBucket: "raikicell.firebasestorage.app",
-  messagingSenderId: "648628376778",
-  appId: "1:648628376778:web:70098faf30f123ed6bd033",
-  measurementId: "G-WWT1K74HHR"
-};
+  <!-- Login -->
+  <div id="loginOverlay">
+    <div id="loginBox">
+      <h2>Login</h2>
+      <input type="text" id="username" placeholder="Username" />
+      <input type="password" id="password" placeholder="Password" />
+      <button id="loginBtn">Login</button>
+      <div id="errorMsg"></div>
+    </div>
+  </div>
 
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const db = getFirestore(app);
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js';
+    import { getDatabase, ref, push, onValue } from 'https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js';
 
-// Data collections references
-const colTransKonter = collection(db, 'transaksi_konter');
-const colTransWarung = collection(db, 'transaksi_warung');
-const colTarikTunai = collection(db, 'tarik_tunai');
-const colPengeluaran = collection(db, 'pengeluaran');
-const colAdminBarang = collection(db, 'admin_barang');
+    const firebaseConfig = {
+      apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
+      authDomain: "raikicell.firebaseapp.com",
+      projectId: "raikicell",
+      storageBucket: "raikicell.appspot.com",
+      messagingSenderId: "648628376778",
+      appId: "1:648628376778:web:70098faf30f123ed6bd033",
+    };
 
-// Utility function: format rupiah
-function formatRupiah(angka) {
-  return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-}
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-// Render functions (untuk masing-masing tabel)
-function renderTableTransKonter(data) {
-  const tbody = document.getElementById('tableKonterBody');
-  tbody.innerHTML = '';
-  data.forEach(doc => {
-    const d = doc.data();
-    tbody.innerHTML += `<tr>
-      <td>${d.tanggal}</td>
-      <td>${d.nama}</td>
-      <td>${formatRupiah(d.harga)}</td>
-      <td>${formatRupiah(d.fee)}</td>
-      <td><button class="delete-button" data-type="transaksi_konter" data-id="${doc.id}">Delete</button></td>
-    </tr>`;
-  });
-}
-function renderTableTransWarung(data) {
-  const tbody = document.getElementById('tableWarungBody');
-  tbody.innerHTML = '';
-  data.forEach(doc => {
-    const d = doc.data();
-    tbody.innerHTML += `<tr>
-      <td>${d.tanggal}</td>
-      <td>${d.nama}</td>
-      <td>${formatRupiah(d.harga)}</td>
-      <td>${formatRupiah(d.fee)}</td>
-      <td><button class="delete-button" data-type="transaksi_warung" data-id="${doc.id}">Delete</button></td>
-    </tr>`;
-  });
-}
-function renderTableTarikTunai(data) {
-  const tbody = document.getElementById('tableTarikTunaiBody');
-  tbody.innerHTML = '';
-  data.forEach(doc => {
-    const d = doc.data();
-    tbody.innerHTML += `<tr>
-      <td>${d.tanggal}</td>
-      <td>${formatRupiah(d.jumlah)}</td>
-      <td>${formatRupiah(d.fee)}</td>
-      <td><button class="delete-button" data-type="tarik_tunai" data-id="${doc.id}">Delete</button></td>
-    </tr>`;
-  });
-}
-function renderTablePengeluaran(data) {
-  const tbody = document.getElementById('tablePengeluaranBody');
-  tbody.innerHTML = '';
-  data.forEach(doc => {
-    const d = doc.data();
-    tbody.innerHTML += `<tr>
-      <td>${d.tanggal}</td>
-      <td>${d.nama}</td>
-      <td>${formatRupiah(d.jumlah)}</td>
-      <td><button class="delete-button" data-type="pengeluaran" data-id="${doc.id}">Delete</button></td>
-    </tr>`;
-  });
-}
-function renderTableAdminBarang(data) {
-  const tbody = document.getElementById('tableAdminBody');
-  tbody.innerHTML = '';
-  data.forEach(doc => {
-    const d = doc.data();
-    tbody.innerHTML += `<tr>
-      <td>${d.nama}</td>
-      <td>${formatRupiah(d.harga)}</td>
-      <td>${formatRupiah(d.fee)}</td>
-      <td><button class="delete-button" data-type="admin_barang" data-id="${doc.id}">Delete</button></td>
-    </tr>`;
-  });
-}
+    const konterForm = document.getElementById('konterForm');
+    const listKonter = document.getElementById('listKonter');
 
-// Load & listen realtime data for all collections
-function listenRealtime() {
-  onSnapshot(colTransKonter, snapshot => {
-    renderTableTransKonter(snapshot.docs);
-  });
-  onSnapshot(colTransWarung, snapshot => {
-    renderTableTransWarung(snapshot.docs);
-  });
-  onSnapshot(colTarikTunai, snapshot => {
-    renderTableTarikTunai(snapshot.docs);
-  });
-  onSnapshot(colPengeluaran, snapshot => {
-    renderTablePengeluaran(snapshot.docs);
-  });
-  onSnapshot(colAdminBarang, snapshot => {
-    renderTableAdminBarang(snapshot.docs);
-  });
-}
+    konterForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const nama = document.getElementById('namaBarangKonter').value.trim();
+      const harga = parseInt(document.getElementById('hargaKonter').value);
+      const fee = parseInt(document.getElementById('feeKonter').value);
+      const tanggal = new Date().toISOString().slice(0, 10);
 
-// Add data functions
-async function addTransKonter(data) {
-  await addDoc(colTransKonter, data);
-}
-async function addTransWarung(data) {
-  await addDoc(colTransWarung, data);
-}
-async function addTarikTunai(data) {
-  await addDoc(colTarikTunai, data);
-}
-async function addPengeluaran(data) {
-  await addDoc(colPengeluaran, data);
-}
-async function addAdminBarang(data) {
-  await addDoc(colAdminBarang, data);
-}
+      if (!nama || isNaN(harga) || isNaN(fee)) return alert("Data tidak valid");
 
-// Delete function
-async function deleteItem(type, id) {
-  try {
-    await deleteDoc(doc(db, type, id));
-  } catch (e) {
-    alert('Gagal hapus: ' + e.message);
-  }
-}
+      push(ref(db, 'transaksiKonter'), { nama, harga, fee, tanggal });
+      konterForm.reset();
+    });
 
-// Event listeners for forms
-document.getElementById('formKonter').addEventListener('submit', async e => {
-  e.preventDefault();
-  const nama = document.getElementById('namaKonter').value.trim();
-  const harga = parseInt(document.getElementById('hargaKonter').value);
-  const fee = parseInt(document.getElementById('feeKonter').value);
-  if (!nama || isNaN(harga) || isNaN(fee) || harga < 0 || fee < 0) return alert('Input tidak valid!');
-  await addTransKonter({
-    nama, harga, fee,
-    tanggal: new Date().toISOString().slice(0,10)
-  });
-  e.target.reset();
-});
-
-document.getElementById('formWarung').addEventListener('submit', async e => {
-  e.preventDefault();
-  const nama = document.getElementById('namaWarung').value.trim();
-  const harga = parseInt(document.getElementById('hargaWarung').value);
-  const fee = parseInt(document.getElementById('feeWarung').value);
-  if (!nama || isNaN(harga) || isNaN(fee) || harga < 0 || fee < 0) return alert('Input tidak valid!');
-  await addTransWarung({
-    nama, harga, fee,
-    tanggal: new Date().toISOString().slice(0,10)
-  });
-  e.target.reset();
-});
-
-document.getElementById('formTarikTunai').addEventListener('submit', async e => {
-  e.preventDefault();
-  const jumlah = parseInt(document.getElementById('jumlahTarikTunai').value);
-  const fee = parseInt(document.getElementById('feeTarikTunai').value);
-  if (isNaN(jumlah) || isNaN(fee) || jumlah < 0 || fee < 0) return alert('Input tidak valid!');
-  await addTarikTunai({
-    jumlah, fee,
-    tanggal: new Date().toISOString().slice(0,10)
-  });
-  e.target.reset();
-});
-
-document.getElementById('formPengeluaran').addEventListener('submit', async e => {
-  e.preventDefault();
-  const nama = document.getElementById('namaPengeluaran').value.trim();
-  const jumlah = parseInt(document.getElementById('jumlahPengeluaran').value);
-  if (!nama || isNaN(jumlah) || jumlah < 0) return alert('Input tidak valid!');
-  await addPengeluaran({
-    nama, jumlah,
-    tanggal: new Date().toISOString().slice(0,10)
-  });
-  e.target.reset();
-});
-
-document.getElementById('formAdmin').addEventListener('submit', async e => {
-  e.preventDefault();
-  const nama = document.getElementById('namaBarangAdmin').value.trim();
-  const harga = parseInt(document.getElementById('hargaAdmin').value);
-  const fee = parseInt(document.getElementById('feeAdmin').value);
-  if (!nama || isNaN(harga) || isNaN(fee) || harga < 0 || fee < 0) return alert('Input tidak valid!');
-  await addAdminBarang({nama, harga, fee});
-  e.target.reset();
-});
-
-// Delete button event delegation
-document.body.addEventListener('click', e => {
-  if (e.target.classList.contains('delete-button')) {
-    const id = e.target.dataset.id;
-    const type = e.target.dataset.type;
-    deleteItem(type, id);
-  }
-});
-
-// Laporan harian
-document.getElementById('btnGenerateLaporanHarian').addEventListener('click', async () => {
-  const tanggal = document.getElementById('tanggalLaporanHarian').value;
-  if (!tanggal) return alert('Pilih tanggal terlebih dahulu');
-
-  let labaKotor = 0;
-  let labaBersih = 0;
-
-  // Query transaksi konter
-  const qKonter = query(colTransKonter, where("tanggal", "==", tanggal));
-  const qWarung = query(colTransWarung, where("tanggal", "==", tanggal));
-  const qPengeluaran = query(colPengeluaran, where("tanggal", "==", tanggal));
-  const qTarikTunai = query(colTarikTunai, where("tanggal", "==", tanggal));
-
-  const [snapKonter, snapWarung, snapPengeluaran, snapTarik] = await Promise.all([
-    getDocs(qKonter), getDocs(qWarung), getDocs(qPengeluaran), getDocs(qTarikTunai)
-  ]);
-
-  snapKonter.forEach(d => {
-    const data = d.data();
-    labaKotor += data.harga + data.fee;
-    labaBersih += data.fee;
-  });
-  snapWarung.forEach(d => {
-    const data = d.data();
-    labaKotor += data.harga + data.fee;
-    labaBersih += data.fee;
-  });
-  snapPengeluaran.forEach(d => {
-    const data = d.data();
-    labaKotor -= data.jumlah;
-  });
-  snapTarik.forEach(d => {
-    const data = d.data();
-    labaKotor -= data.jumlah;
-    labaBersih += data.fee;
-  });
-
-  const hasil = `Laba Kotor: ${formatRupiah(labaKotor)} | Laba Bersih: ${formatRupiah(labaBersih)}`;
-  document.getElementById('laporanHarianResult').textContent = hasil;
-});
-
-// Laporan bulanan
-document.getElementById('btnGenerateLaporanBulanan').addEventListener('click', async () => {
-  const bulan = document.getElementById('bulanLaporanBulanan').value;
-  if (!bulan) return alert('Pilih bulan terlebih dahulu');
-
-  let labaKotor = 0;
-  let labaBersih = 0;
-
-  // Bulan format yyyy-mm
-  function isInMonth(dateStr) {
-    return dateStr.startsWith(bulan);
-  }
-
-  const snapKonter = await getDocs(colTransKonter);
-  const snapWarung = await getDocs(colTransWarung);
-  const snapPengeluaran = await getDocs(colPengeluaran);
-  const snapTarik = await getDocs(colTarikTunai);
-
-  snapKonter.forEach(d => {
-    const data = d.data();
-    if (isInMonth(data.tanggal)) {
-      labaKotor += data.harga + data.fee;
-      labaBersih += data.fee;
+    function renderKonter() {
+      onValue(ref(db, 'transaksiKonter'), snapshot => {
+        const data = snapshot.val();
+        listKonter.innerHTML = '<table><thead><tr><th>Nama</th><th>Harga</th><th>Fee</th><th>Tanggal</th></tr></thead><tbody>' +
+          Object.values(data || {}).map(d => `
+            <tr>
+              <td>${d.nama}</td>
+              <td>${d.harga}</td>
+              <td>${d.fee}</td>
+              <td>${d.tanggal}</td>
+            </tr>
+          `).join('') + '</tbody></table>';
+      });
     }
-  });
-  snapWarung.forEach(d => {
-    const data = d.data();
-    if (isInMonth(data.tanggal)) {
-      labaKotor += data.harga + data.fee;
-      labaBersih += data.fee;
+
+    renderKonter();
+
+    // Login
+    const validUsername = "AE366813";
+    const validPassword = "Raikicell1909";
+    const loginOverlay = document.getElementById('loginOverlay');
+    const loginBtn = document.getElementById('loginBtn');
+    const errorMsg = document.getElementById('errorMsg');
+
+    if (sessionStorage.getItem('loggedIn') === 'true') {
+      document.body.classList.remove('not-logged-in');
+      loginOverlay.style.display = 'none';
     }
-  });
-  snapPengeluaran.forEach(d => {
-    const data = d.data();
-    if (isInMonth(data.tanggal)) {
-      labaKotor -= data.jumlah;
+
+    loginBtn.addEventListener('click', () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      if (username === validUsername && password === validPassword) {
+        sessionStorage.setItem('loggedIn', 'true');
+        document.body.classList.remove('not-logged-in');
+        loginOverlay.style.display = 'none';
+      } else {
+        errorMsg.textContent = 'Username atau password salah!';
+      }
+    });
+
+    // Show/hide section
+    function showSection(id) {
+      document.querySelectorAll('main > section').forEach(sec => sec.style.display = 'none');
+      const target = document.getElementById(id);
+      if (target) target.style.display = 'block';
     }
-  });
-  snapTarik.forEach(d => {
-    const data = d.data();
-    if (isInMonth(data.tanggal)) {
-      labaKotor -= data.jumlah;
-      labaBersih += data.fee;
-    }
-  });
 
-  const hasil = `Laba Kotor Bulanan: ${formatRupiah(labaKotor)} | Laba Bersih Bulanan: ${formatRupiah(labaBersih)}`;
-  document.getElementById('laporanBulananResult').textContent = hasil;
-});
-
-// Login overlay code (kamu sudah punya, tinggal diikutin aja)
-const validUsername = "AE366813";
-const validPassword = "Raikicell1909";
-
-const loginOverlay = document.getElementById('loginOverlay');
-const errorMsg = document.getElementById('errorMsg');
-const loginBtn = document.getElementById('loginBtn');
-
-document.body.classList.add('not-logged-in');
-
-loginBtn.addEventListener('click', () => {
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
-
-  if (username === validUsername && password === validPassword) {
-    document.body.classList.remove('not-logged-in');
-    loginOverlay.style.display = 'none';
-    sessionStorage.setItem('loggedIn', 'true');
-  } else {
-    errorMsg.textContent = 'Username atau password salah!';
-  }
-});
-
-if (sessionStorage.getItem('loggedIn') === 'true') {
-  document.body.classList.remove('not-logged-in');
-  loginOverlay.style.display = 'none';
-}
-
-// Jalankan listen realtime saat script jalan
-listenRealtime();
-</script>
+    showSection('formKonter'); // Default tab
+  </script>
+</body>
+</html>
