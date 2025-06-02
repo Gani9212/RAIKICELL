@@ -5,177 +5,292 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>POS Pembukuan Raikicell</title>
   <style>
-    body {
-      margin: 0; font-family: Arial, sans-serif; height: 100vh; display: flex;
-      background: #f4f7fa;
-    }
+    /* Reset */
+    * { box-sizing: border-box; }
+    body, html { margin:0; padding:0; font-family: Arial, sans-serif; height: 100vh; display: flex; }
+    /* Sidebar */
     #sidebar {
-      width: 220px; background: #2c3e50; color: white;
-      display: flex; flex-direction: column; padding: 20px;
-      box-sizing: border-box;
+      width: 200px;
+      background: #2c3e50;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding-top: 20px;
     }
     #sidebar button {
-      background: none; border: none; color: white;
-      padding: 15px 10px; text-align: left; cursor: pointer;
-      font-size: 16px; border-radius: 5px; margin-bottom: 10px;
-      transition: background 0.3s;
+      background: none;
+      border: none;
+      color: white;
+      padding: 15px 20px;
+      text-align: left;
+      width: 100%;
+      cursor: pointer;
+      font-size: 16px;
+      border-left: 4px solid transparent;
+      transition: background 0.3s, border-left 0.3s;
     }
     #sidebar button.active, #sidebar button:hover {
       background: #34495e;
+      border-left: 4px solid #1abc9c;
     }
-    #mainContent {
-      flex: 1; padding: 20px; overflow-y: auto;
-      box-sizing: border-box;
+    /* Content area */
+    #content {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: #ecf0f1;
     }
-    form > * {
-      display: block; margin-bottom: 10px; width: 100%;
-      padding: 8px; font-size: 14px; box-sizing: border-box;
+    /* Hidden sections */
+    section { display: none; }
+    section.active { display: block; }
+
+    /* Form styling */
+    form {
+      background: white;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+      max-width: 400px;
+    }
+    form input, form select {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
     }
     form button {
-      width: auto; padding: 10px 20px;
-      background: #27ae60; border: none; color: white;
-      cursor: pointer; border-radius: 4px;
+      background: #1abc9c;
+      color: white;
+      border: none;
+      padding: 10px;
+      width: 100%;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 4px;
     }
     form button:hover {
-      background: #219150;
+      background: #16a085;
     }
-    ul {
-      list-style: none; padding-left: 0; max-height: 300px; overflow-y: auto;
-      border: 1px solid #ccc; border-radius: 5px;
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      margin-top: 10px;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
     }
-    li {
-      padding: 10px; background: white; margin-bottom: 5px;
-      display: flex; justify-content: space-between; align-items: center;
-      border-radius: 3px;
+    table th, table td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+    table th {
+      background: #1abc9c;
+      color: white;
     }
     .delete-button {
-      background: #e74c3c; border: none; color: white;
-      cursor: pointer; border-radius: 3px; padding: 5px 10px;
+      background: #e74c3c;
+      border: none;
+      color: white;
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 4px;
     }
     .delete-button:hover {
       background: #c0392b;
     }
-    .tab-content {
-      display: none;
+
+    /* Login overlay */
+    #loginOverlay {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.6);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 9999;
     }
-    .tab-content.active {
-      display: block;
+    #loginBox {
+      background: white; padding: 20px; border-radius: 8px; width: 320px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
-    h2 {
-      margin-top: 0;
+    #loginBox input {
+      width: 100%; margin: 10px 0; padding: 10px; box-sizing: border-box;
     }
-    .report-result {
-      margin-top: 10px; font-weight: bold;
-      background: white; padding: 10px; border-radius: 5px;
-      border: 1px solid #ccc;
-      max-width: 400px;
+    #loginBox button {
+      width: 100%; padding: 10px; background: #4CAF50; color: white;
+      border: none; cursor: pointer;
+    }
+    #loginBox button:hover {
+      background: #45a049;
+    }
+    #errorMsg {
+      color: red; font-size: 0.9em; height: 1.2em;
+    }
+    body.not-logged-in > *:not(#loginOverlay) {
+      display: none !important;
     }
   </style>
 </head>
-<body>
+<body class="not-logged-in">
+
+  <div id="loginOverlay">
+    <div id="loginBox">
+      <h2>Login</h2>
+      <input type="text" id="username" placeholder="Username" autocomplete="off" />
+      <input type="password" id="password" placeholder="Password" autocomplete="off" />
+      <button id="loginBtn">Login</button>
+      <div id="errorMsg"></div>
+    </div>
+  </div>
 
   <div id="sidebar">
     <button data-tab="konter" class="active">Transaksi Konter</button>
     <button data-tab="warung">Transaksi Warung</button>
-    <button data-tab="tariktunai">Tarik Tunai</button>
+    <button data-tab="tarikTunai">Tarik Tunai</button>
     <button data-tab="pengeluaran">Pengeluaran</button>
-    <button data-tab="barang">Admin Barang</button>
+    <button data-tab="adminBarang">Admin Barang</button>
     <button data-tab="laporan">Laporan</button>
   </div>
 
-  <div id="mainContent">
-    <!-- TRANSAKSI KONTER -->
-    <div id="tab-konter" class="tab-content active">
+  <div id="content">
+    <!-- Transaksi Konter -->
+    <section id="konter" class="active">
       <h2>Transaksi Konter</h2>
-      <form id="formTransaksiKonter">
-        <input type="date" id="tglKonter" required />
+      <form id="formKonter">
         <input type="text" id="namaBarangKonter" placeholder="Nama Barang" required />
-        <input type="number" id="hargaKonter" placeholder="Harga" required min="0" />
-        <input type="number" id="feeKonter" placeholder="Fee" required min="0" />
-        <button type="submit">Simpan</button>
+        <input type="number" id="hargaKonter" placeholder="Harga" min="0" required />
+        <input type="number" id="feeKonter" placeholder="Fee" min="0" required />
+        <button type="submit">Tambah Transaksi</button>
       </form>
-      <ul id="listTransaksiKonter"></ul>
-    </div>
+      <table id="tableKonter">
+        <thead>
+          <tr>
+            <th>Nama Barang</th>
+            <th>Harga</th>
+            <th>Fee</th>
+            <th>Tanggal</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
 
-    <!-- TRANSAKSI WARUNG -->
-    <div id="tab-warung" class="tab-content">
+    <!-- Transaksi Warung -->
+    <section id="warung">
       <h2>Transaksi Warung</h2>
-      <form id="formTransaksiWarung">
-        <input type="date" id="tglWarung" required />
+      <form id="formWarung">
         <input type="text" id="namaBarangWarung" placeholder="Nama Barang" required />
-        <input type="number" id="hargaWarung" placeholder="Harga" required min="0" />
-        <input type="number" id="feeWarung" placeholder="Fee" required min="0" />
-        <button type="submit">Simpan</button>
+        <input type="number" id="hargaWarung" placeholder="Harga" min="0" required />
+        <input type="number" id="feeWarung" placeholder="Fee" min="0" required />
+        <button type="submit">Tambah Transaksi</button>
       </form>
-      <ul id="listTransaksiWarung"></ul>
-    </div>
+      <table id="tableWarung">
+        <thead>
+          <tr>
+            <th>Nama Barang</th>
+            <th>Harga</th>
+            <th>Fee</th>
+            <th>Tanggal</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
 
-    <!-- TARIK TUNAI -->
-    <div id="tab-tariktunai" class="tab-content">
+    <!-- Tarik Tunai -->
+    <section id="tarikTunai">
       <h2>Tarik Tunai</h2>
       <form id="formTarikTunai">
-        <input type="date" id="tglTarikTunai" required />
-        <input type="number" id="jumlahTarikTunai" placeholder="Jumlah" required min="0" />
-        <input type="number" id="feeTarikTunai" placeholder="Fee" required min="0" />
-        <button type="submit">Simpan</button>
+        <input type="number" id="jumlahTarikTunai" placeholder="Jumlah" min="0" required />
+        <input type="number" id="feeTarikTunai" placeholder="Fee" min="0" required />
+        <button type="submit">Tambah Tarik Tunai</button>
       </form>
-      <ul id="listTarikTunai"></ul>
-    </div>
+      <table id="tableTarikTunai">
+        <thead>
+          <tr>
+            <th>Jumlah</th>
+            <th>Fee</th>
+            <th>Tanggal</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
 
-    <!-- PENGELUARAN -->
-    <div id="tab-pengeluaran" class="tab-content">
+    <!-- Pengeluaran -->
+    <section id="pengeluaran">
       <h2>Pengeluaran</h2>
       <form id="formPengeluaran">
-        <input type="date" id="tglPengeluaran" required />
         <input type="text" id="namaPengeluaran" placeholder="Nama Pengeluaran" required />
-        <input type="number" id="jumlahPengeluaran" placeholder="Jumlah" required min="0" />
-        <button type="submit">Simpan</button>
+        <input type="number" id="jumlahPengeluaran" placeholder="Jumlah" min="0" required />
+        <button type="submit">Tambah Pengeluaran</button>
       </form>
-      <ul id="listPengeluaran"></ul>
-    </div>
+      <table id="tablePengeluaran">
+        <thead>
+          <tr>
+            <th>Nama</th>
+            <th>Jumlah</th>
+            <th>Tanggal</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
 
-    <!-- ADMIN BARANG -->
-    <div id="tab-barang" class="tab-content">
+    <!-- Admin Barang -->
+    <section id="adminBarang">
       <h2>Admin Barang</h2>
       <form id="formAdmin">
         <input type="text" id="namaBarangAdmin" placeholder="Nama Barang" required />
-        <input type="number" id="hargaAdmin" placeholder="Harga" required min="0" />
-        <input type="number" id="feeAdmin" placeholder="Fee" required min="0" />
+        <input type="number" id="hargaAdmin" placeholder="Harga" min="0" required />
+        <input type="number" id="feeAdmin" placeholder="Fee" min="0" required />
         <button type="submit">Tambah Barang</button>
       </form>
-      <input type="text" id="searchBarang" placeholder="Cari Barang..." style="margin-top:10px; padding:8px; width: 100%; box-sizing: border-box;" />
-      <ul id="listBarangAdmin"></ul>
-    </div>
+      <input type="text" id="searchBarang" placeholder="Cari Barang..." />
+      <table id="tableAdminBarang">
+        <thead>
+          <tr>
+            <th>Nama Barang</th>
+            <th>Harga</th>
+            <th>Fee</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
 
-    <!-- LAPORAN -->
-    <div id="tab-laporan" class="tab-content">
+    <!-- Laporan -->
+    <section id="laporan">
       <h2>Laporan</h2>
-
       <div>
         <h3>Laporan Harian</h3>
         <input type="date" id="tanggalLaporanHarian" />
         <button id="btnGenerateLaporanHarian">Generate Laporan Harian</button>
-        <div id="laporanHarianResult" class="report-result"></div>
+        <p id="laporanHarianResult"></p>
       </div>
-
-      <div style="margin-top:20px;">
+      <div>
         <h3>Laporan Bulanan</h3>
         <input type="month" id="bulanLaporanBulanan" />
         <button id="btnGenerateLaporanBulanan">Generate Laporan Bulanan</button>
-        <div id="laporanBulananResult" class="report-result"></div>
+        <p id="laporanBulananResult"></p>
       </div>
-    </div>
+    </section>
   </div>
 
   <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
   <script>
-    // Konfigurasi Firebase (ganti sesuai proyek lo)
+    // Firebase config
     const firebaseConfig = {
-      apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
+      apiKey: "AIzaSyCxqXqls0Wmoqz8yO65Jmo92Mzx4ZdMoE0",
       authDomain: "raikicell.firebaseapp.com",
       databaseURL: "https://raikicell-default-rtdb.firebaseio.com",
       projectId: "raikicell",
@@ -185,396 +300,371 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.database();
 
-    // GLOBALS
-    let userId = null;
+    // ======== AUTH =========
+    const validUsername = "AE366813";
+    const validPassword = "Raikicell1909";
+    const loginOverlay = document.getElementById('loginOverlay');
+    const errorMsg = document.getElementById('errorMsg');
+    const loginBtn = document.getElementById('loginBtn');
 
-    // Format rupiah helper
-    function formatRupiah(angka) {
-      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(angka);
+    document.body.classList.add('not-logged-in');
+
+    loginBtn.addEventListener('click', () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (username === validUsername && password === validPassword) {
+        document.body.classList.remove('not-logged-in');
+        loginOverlay.style.display = 'none';
+        sessionStorage.setItem('loggedIn', 'true');
+        loadAllData();
+      } else {
+        errorMsg.textContent = 'Username atau password salah!';
+      }
+    });
+
+    if (sessionStorage.getItem('loggedIn') === 'true') {
+      document.body.classList.remove('not-logged-in');
+      loginOverlay.style.display = 'none';
+      loadAllData();
     }
 
-    // ---------------------------------------
-    // Login Anonymous & mulai load data
-    auth.signInAnonymously()
-      .then(() => {
-        userId = auth.currentUser.uid;
-        console.log('Login anon sukses, uid:', userId);
-        setupListeners();
-        loadAllData();
-      })
-      .catch(err => {
-        alert('Login error: ' + err.message);
-      });
-
-    // ---------------------------------------
-    // UI Tab switch
-    const sidebarButtons = document.querySelectorAll('#sidebar button');
-    const tabContents = document.querySelectorAll('.tab-content');
-    sidebarButtons.forEach(btn => {
+    // ======== NAVIGATION =========
+    const buttons = document.querySelectorAll('#sidebar button');
+    buttons.forEach(btn => {
       btn.addEventListener('click', () => {
-        sidebarButtons.forEach(b => b.classList.remove('active'));
+        // remove active class all
+        buttons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        const tab = btn.getAttribute('data-tab');
-        tabContents.forEach(tc => {
-          tc.classList.toggle('active', tc.id === 'tab-' + tab);
+
+        // show tab section
+        const tab = btn.dataset.tab;
+        document.querySelectorAll('section').forEach(sec => {
+          sec.classList.toggle('active', sec.id === tab);
         });
       });
     });
 
-    // ---------------------------------------
-    // SIMPAN DATA KE FIREBASE
-
-    function simpanData(path, data) {
-      const ref = db.ref(`users/${userId}/${path}`);
-      return ref.push(data);
+    // ======== HELPER =========
+    function formatRupiah(num) {
+      return 'Rp ' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
-    // Hapus item berdasarkan key di firebase
-    function hapusData(path, key) {
-      const ref = db.ref(`users/${userId}/${path}/${key}`);
-      return ref.remove();
-    }
+    // ======== DATA HANDLERS =========
+    // Each data type will have functions to load, render, add, and delete
 
-    // ---------------------------------------
-    // RENDER DATA LIST & BINDING FORM SUBMIT
+    // --- TRANSAKSI KONTER ---
+    const formKonter = document.getElementById('formKonter');
+    const tableKonterBody = document.querySelector('#tableKonter tbody');
 
-    // Transaksi Konter
-    const listTransaksiKonter = document.getElementById('listTransaksiKonter');
-    const formTransaksiKonter = document.getElementById('formTransaksiKonter');
-    formTransaksiKonter.addEventListener('submit', e => {
+    formKonter.addEventListener('submit', e => {
       e.preventDefault();
-      const data = {
-        tanggal: document.getElementById('tglKonter').value,
-        namaBarang: document.getElementById('namaBarangKonter').value.trim(),
-        harga: Number(document.getElementById('hargaKonter').value),
-        fee: Number(document.getElementById('feeKonter').value)
-      };
-      if (!data.tanggal || !data.namaBarang || isNaN(data.harga) || isNaN(data.fee)) {
+      const nama = document.getElementById('namaBarangKonter').value.trim();
+      const harga = parseInt(document.getElementById('hargaKonter').value);
+      const fee = parseInt(document.getElementById('feeKonter').value);
+
+      if (!nama || isNaN(harga) || isNaN(fee) || harga < 0 || fee < 0) {
         return alert('Input tidak valid!');
       }
-      simpanData('transaksiKonter', data)
-        .then(() => formTransaksiKonter.reset())
-        .catch(e => alert('Gagal simpan: ' + e.message));
+
+      const newData = {
+        nama, harga, fee,
+        tanggal: new Date().toISOString().slice(0,10)
+      };
+
+      db.ref('transaksiKonter').push(newData)
+        .then(() => {
+          formKonter.reset();
+        })
+        .catch(err => alert('Gagal menyimpan data: ' + err));
     });
 
-    function renderTransaksiKonter(data) {
-      listTransaksiKonter.innerHTML = '';
-      Object.entries(data).forEach(([key, val]) => {
-        const li = document.createElement('li');
-        li.textContent = `${val.tanggal} | ${val.namaBarang} | ${formatRupiah(val.harga)} | Fee: ${formatRupiah(val.fee)}`;
-        const delBtn = document.createElement('button');
-        delBtn.textContent = 'Hapus';
-        delBtn.classList.add('delete-button');
-        delBtn.onclick = () => {
-          if (confirm('Yakin hapus transaksi ini?')) {
-            hapusData('transaksiKonter', key);
-          }
-        };
-        li.appendChild(delBtn);
-        listTransaksiKonter.appendChild(li);
+    function renderTableKonter(data) {
+      tableKonterBody.innerHTML = '';
+      data.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.val.nama}</td>
+          <td>${formatRupiah(item.val.harga)}</td>
+          <td>${formatRupiah(item.val.fee)}</td>
+          <td>${item.val.tanggal}</td>
+          <td><button class="delete-button" data-type="transaksiKonter" data-key="${item.key}">Hapus</button></td>
+        `;
+        tableKonterBody.appendChild(tr);
       });
     }
 
-    // Transaksi Warung
-    const listTransaksiWarung = document.getElementById('listTransaksiWarung');
-    const formTransaksiWarung = document.getElementById('formTransaksiWarung');
-    formTransaksiWarung.addEventListener('submit', e => {
+    // --- TRANSAKSI WARUNG ---
+    const formWarung = document.getElementById('formWarung');
+    const tableWarungBody = document.querySelector('#tableWarung tbody');
+
+    formWarung.addEventListener('submit', e => {
       e.preventDefault();
-      const data = {
-        tanggal: document.getElementById('tglWarung').value,
-        namaBarang: document.getElementById('namaBarangWarung').value.trim(),
-        harga: Number(document.getElementById('hargaWarung').value),
-        fee: Number(document.getElementById('feeWarung').value)
-      };
-      if (!data.tanggal || !data.namaBarang || isNaN(data.harga) || isNaN(data.fee)) {
+      const nama = document.getElementById('namaBarangWarung').value.trim();
+      const harga = parseInt(document.getElementById('hargaWarung').value);
+      const fee = parseInt(document.getElementById('feeWarung').value);
+
+      if (!nama || isNaN(harga) || isNaN(fee) || harga < 0 || fee < 0) {
         return alert('Input tidak valid!');
       }
-      simpanData('transaksiWarung', data)
-        .then(() => formTransaksiWarung.reset())
-        .catch(e => alert('Gagal simpan: ' + e.message));
+
+      const newData = {
+        nama, harga, fee,
+        tanggal: new Date().toISOString().slice(0,10)
+      };
+
+      db.ref('transaksiWarung').push(newData)
+        .then(() => formWarung.reset())
+        .catch(err => alert('Gagal menyimpan data: ' + err));
     });
 
-    function renderTransaksiWarung(data) {
-      listTransaksiWarung.innerHTML = '';
-      Object.entries(data).forEach(([key, val]) => {
-        const li = document.createElement('li');
-        li.textContent = `${val.tanggal} | ${val.namaBarang} | ${formatRupiah(val.harga)} | Fee: ${formatRupiah(val.fee)}`;
-        const delBtn = document.createElement('button');
-        delBtn.textContent = 'Hapus';
-        delBtn.classList.add('delete-button');
-        delBtn.onclick = () => {
-          if (confirm('Yakin hapus transaksi ini?')) {
-            hapusData('transaksiWarung', key);
-          }
-        };
-        li.appendChild(delBtn);
-        listTransaksiWarung.appendChild(li);
+    function renderTableWarung(data) {
+      tableWarungBody.innerHTML = '';
+      data.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.val.nama}</td>
+          <td>${formatRupiah(item.val.harga)}</td>
+          <td>${formatRupiah(item.val.fee)}</td>
+          <td>${item.val.tanggal}</td>
+          <td><button class="delete-button" data-type="transaksiWarung" data-key="${item.key}">Hapus</button></td>
+        `;
+        tableWarungBody.appendChild(tr);
       });
     }
 
-    // Tarik Tunai
-    const listTarikTunai = document.getElementById('listTarikTunai');
+    // --- TARIK TUNAI ---
     const formTarikTunai = document.getElementById('formTarikTunai');
+    const tableTarikTunaiBody = document.querySelector('#tableTarikTunai tbody');
+
     formTarikTunai.addEventListener('submit', e => {
       e.preventDefault();
-      const data = {
-        tanggal: document.getElementById('tglTarikTunai').value,
-        jumlah: Number(document.getElementById('jumlahTarikTunai').value),
-        fee: Number(document.getElementById('feeTarikTunai').value)
+      const jumlah = parseInt(document.getElementById('jumlahTarikTunai').value);
+      const fee = parseInt(document.getElementById('feeTarikTunai').value);
+      if (isNaN(jumlah) || isNaN(fee) || jumlah < 0 || fee < 0) return alert('Input tidak valid!');
+
+      const newData = {
+        jumlah, fee,
+        tanggal: new Date().toISOString().slice(0,10)
       };
-      if (!data.tanggal || isNaN(data.jumlah) || isNaN(data.fee)) {
-        return alert('Input tidak valid!');
-      }
-      simpanData('tarikTunai', data)
+
+      db.ref('tarikTunai').push(newData)
         .then(() => formTarikTunai.reset())
-        .catch(e => alert('Gagal simpan: ' + e.message));
+        .catch(err => alert('Gagal menyimpan data: ' + err));
     });
 
-    function renderTarikTunai(data) {
-      listTarikTunai.innerHTML = '';
-      Object.entries(data).forEach(([key, val]) => {
-        const li = document.createElement('li');
-        li.textContent = `${val.tanggal} | Jumlah: ${formatRupiah(val.jumlah)} | Fee: ${formatRupiah(val.fee)}`;
-        const delBtn = document.createElement('button');
-        delBtn.textContent = 'Hapus';
-        delBtn.classList.add('delete-button');
-        delBtn.onclick = () => {
-          if (confirm('Yakin hapus transaksi ini?')) {
-            hapusData('tarikTunai', key);
-          }
-        };
-        li.appendChild(delBtn);
-        listTarikTunai.appendChild(li);
+    function renderTableTarikTunai(data) {
+      tableTarikTunaiBody.innerHTML = '';
+      data.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${formatRupiah(item.val.jumlah)}</td>
+          <td>${formatRupiah(item.val.fee)}</td>
+          <td>${item.val.tanggal}</td>
+          <td><button class="delete-button" data-type="tarikTunai" data-key="${item.key}">Hapus</button></td>
+        `;
+        tableTarikTunaiBody.appendChild(tr);
       });
     }
 
-    // Pengeluaran
-    const listPengeluaran = document.getElementById('listPengeluaran');
+    // --- PENGELUARAN ---
     const formPengeluaran = document.getElementById('formPengeluaran');
+    const tablePengeluaranBody = document.querySelector('#tablePengeluaran tbody');
+
     formPengeluaran.addEventListener('submit', e => {
       e.preventDefault();
-      const data = {
-        tanggal: document.getElementById('tglPengeluaran').value,
-        namaPengeluaran: document.getElementById('namaPengeluaran').value.trim(),
-        jumlah: Number(document.getElementById('jumlahPengeluaran').value)
-      };
-      if (!data.tanggal || !data.namaPengeluaran || isNaN(data.jumlah)) {
-        return alert('Input tidak valid!');
-      }
-      simpanData('pengeluaran', data)
+      const nama = document.getElementById('namaPengeluaran').value.trim();
+      const jumlah = parseInt(document.getElementById('jumlahPengeluaran').value);
+      if (!nama || isNaN(jumlah) || jumlah < 0) return alert('Input tidak valid!');
+
+      const newData = { nama, jumlah, tanggal: new Date().toISOString().slice(0,10) };
+
+      db.ref('pengeluaran').push(newData)
         .then(() => formPengeluaran.reset())
-        .catch(e => alert('Gagal simpan: ' + e.message));
+        .catch(err => alert('Gagal menyimpan data: ' + err));
     });
 
-    function renderPengeluaran(data) {
-      listPengeluaran.innerHTML = '';
-      Object.entries(data).forEach(([key, val]) => {
-        const li = document.createElement('li');
-        li.textContent = `${val.tanggal} | ${val.namaPengeluaran} | ${formatRupiah(val.jumlah)}`;
-        const delBtn = document.createElement('button');
-        delBtn.textContent = 'Hapus';
-        delBtn.classList.add('delete-button');
-        delBtn.onclick = () => {
-          if (confirm('Yakin hapus pengeluaran ini?')) {
-            hapusData('pengeluaran', key);
-          }
-        };
-        li.appendChild(delBtn);
-        listPengeluaran.appendChild(li);
+    function renderTablePengeluaran(data) {
+      tablePengeluaranBody.innerHTML = '';
+      data.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.val.nama}</td>
+          <td>${formatRupiah(item.val.jumlah)}</td>
+          <td>${item.val.tanggal}</td>
+          <td><button class="delete-button" data-type="pengeluaran" data-key="${item.key}">Hapus</button></td>
+        `;
+        tablePengeluaranBody.appendChild(tr);
       });
     }
 
-    // Admin Barang
-    const listBarangAdmin = document.getElementById('listBarangAdmin');
+    // --- ADMIN BARANG ---
     const formAdmin = document.getElementById('formAdmin');
+    const tableAdminBody = document.querySelector('#tableAdminBarang tbody');
     const searchBarangInput = document.getElementById('searchBarang');
 
     formAdmin.addEventListener('submit', e => {
       e.preventDefault();
-      const data = {
-        namaBarang: document.getElementById('namaBarangAdmin').value.trim(),
-        harga: Number(document.getElementById('hargaAdmin').value),
-        fee: Number(document.getElementById('feeAdmin').value)
-      };
-      if (!data.namaBarang || isNaN(data.harga) || isNaN(data.fee)) {
-        return alert('Input tidak valid!');
-      }
-      simpanData('adminBarang', data)
-        .then(() => {
-          formAdmin.reset();
-          loadAdminBarang();
-        })
-        .catch(e => alert('Gagal simpan: ' + e.message));
+      const nama = document.getElementById('namaBarangAdmin').value.trim();
+      const harga = parseInt(document.getElementById('hargaAdmin').value);
+      const fee = parseInt(document.getElementById('feeAdmin').value);
+      if (!nama || isNaN(harga) || isNaN(fee) || harga < 0 || fee < 0) return alert('Input tidak valid!');
+
+      const newData = { nama, harga, fee };
+      db.ref('adminBarang').push(newData)
+        .then(() => formAdmin.reset())
+        .catch(err => alert('Gagal menyimpan data: ' + err));
     });
 
-    let allBarang = {};
-
-    function renderAdminBarang(data, filter = '') {
-      allBarang = data || {};
-      listBarangAdmin.innerHTML = '';
-      Object.entries(allBarang).forEach(([key, val]) => {
-        if (!val.namaBarang.toLowerCase().includes(filter.toLowerCase())) return;
-        const li = document.createElement('li');
-        li.textContent = `${val.namaBarang} | Harga: ${formatRupiah(val.harga)} | Fee: ${formatRupiah(val.fee)}`;
-        const delBtn = document.createElement('button');
-        delBtn.textContent = 'Hapus';
-        delBtn.classList.add('delete-button');
-        delBtn.onclick = () => {
-          if (confirm('Yakin hapus barang ini?')) {
-            hapusData('adminBarang', key).then(() => loadAdminBarang());
-          }
-        };
-        li.appendChild(delBtn);
-        listBarangAdmin.appendChild(li);
+    function renderTableAdminBarang(data, filter='') {
+      tableAdminBody.innerHTML = '';
+      data.forEach(item => {
+        if (filter && !item.val.nama.toLowerCase().includes(filter.toLowerCase())) return;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.val.nama}</td>
+          <td>${formatRupiah(item.val.harga)}</td>
+          <td>${formatRupiah(item.val.fee)}</td>
+          <td><button class="delete-button" data-type="adminBarang" data-key="${item.key}">Hapus</button></td>
+        `;
+        tableAdminBody.appendChild(tr);
       });
     }
 
-    searchBarangInput.addEventListener('input', e => {
-      renderAdminBarang(allBarang, e.target.value);
+    searchBarangInput.addEventListener('input', () => {
+      loadAdminBarang(searchBarangInput.value.trim());
     });
 
-    function loadAdminBarang() {
-      db.ref(`users/${userId}/adminBarang`).once('value')
-        .then(snapshot => {
-          const val = snapshot.val() || {};
-          renderAdminBarang(val, searchBarangInput.value);
-        });
-    }
+    // ======== DELETE BUTTONS HANDLER =========
+    document.body.addEventListener('click', e => {
+      if (e.target.classList.contains('delete-button')) {
+        const type = e.target.dataset.type;
+        const key = e.target.dataset.key;
+        if (confirm('Yakin ingin menghapus data ini?')) {
+          db.ref(type + '/' + key).remove();
+        }
+      }
+    });
 
-    // ---------------------------------------
-    // LOAD ALL DATA (and realtime listeners)
-
+    // ======== LOAD ALL DATA AND LISTENERS =========
     function loadAllData() {
-      // Transaksi Konter realtime listener
-      db.ref(`users/${userId}/transaksiKonter`).on('value', snapshot => {
-        renderTransaksiKonter(snapshot.val() || {});
+      // Konter
+      db.ref('transaksiKonter').on('value', snapshot => {
+        const data = [];
+        snapshot.forEach(child => data.push({ key: child.key, val: child.val() }));
+        renderTableKonter(data);
       });
-      // Transaksi Warung realtime listener
-      db.ref(`users/${userId}/transaksiWarung`).on('value', snapshot => {
-        renderTransaksiWarung(snapshot.val() || {});
+
+      // Warung
+      db.ref('transaksiWarung').on('value', snapshot => {
+        const data = [];
+        snapshot.forEach(child => data.push({ key: child.key, val: child.val() }));
+        renderTableWarung(data);
       });
-      // Tarik Tunai realtime listener
-      db.ref(`users/${userId}/tarikTunai`).on('value', snapshot => {
-        renderTarikTunai(snapshot.val() || {});
+
+      // Tarik Tunai
+      db.ref('tarikTunai').on('value', snapshot => {
+        const data = [];
+        snapshot.forEach(child => data.push({ key: child.key, val: child.val() }));
+        renderTableTarikTunai(data);
       });
-      // Pengeluaran realtime listener
-      db.ref(`users/${userId}/pengeluaran`).on('value', snapshot => {
-        renderPengeluaran(snapshot.val() || {});
+
+      // Pengeluaran
+      db.ref('pengeluaran').on('value', snapshot => {
+        const data = [];
+        snapshot.forEach(child => data.push({ key: child.key, val: child.val() }));
+        renderTablePengeluaran(data);
       });
-      // Admin Barang realtime listener
-      db.ref(`users/${userId}/adminBarang`).on('value', snapshot => {
-        renderAdminBarang(snapshot.val() || {}, searchBarangInput.value);
+
+      // Admin Barang
+      db.ref('adminBarang').on('value', snapshot => {
+        const data = [];
+        snapshot.forEach(child => data.push({ key: child.key, val: child.val() }));
+        renderTableAdminBarang(data, searchBarangInput.value.trim());
       });
     }
 
-    // ---------------------------------------
-    // LAPORAN
-    const btnGenerateLaporanHarian = document.getElementById('btnGenerateLaporanHarian');
-    const laporanHarianResult = document.getElementById('laporanHarianResult');
-
-    btnGenerateLaporanHarian.addEventListener('click', () => {
+    // ======== LAPORAN =========
+    document.getElementById('btnGenerateLaporanHarian').addEventListener('click', () => {
       const tgl = document.getElementById('tanggalLaporanHarian').value;
-      if (!tgl) {
-        alert('Pilih tanggal dulu!');
-        return;
-      }
-      generateLaporan('harian', tgl);
+      if (!tgl) return alert('Pilih tanggal dulu!');
+      generateLaporan(tgl, 'harian');
     });
 
-    const btnGenerateLaporanBulanan = document.getElementById('btnGenerateLaporanBulanan');
-    const laporanBulananResult = document.getElementById('laporanBulananResult');
-
-    btnGenerateLaporanBulanan.addEventListener('click', () => {
-      const bulan = document.getElementById('bulanLaporanBulanan').value;
-      if (!bulan) {
-        alert('Pilih bulan dulu!');
-        return;
-      }
-      generateLaporan('bulanan', bulan);
+    document.getElementById('btnGenerateLaporanBulanan').addEventListener('click', () => {
+      const bln = document.getElementById('bulanLaporanBulanan').value;
+      if (!bln) return alert('Pilih bulan dulu!');
+      generateLaporan(bln, 'bulanan');
     });
 
-    // Ambil semua data dari semua jenis transaksi sekaligus
-    async function fetchAllData() {
-      const paths = ['transaksiKonter', 'transaksiWarung', 'tarikTunai', 'pengeluaran'];
-      let results = {};
-      for (const p of paths) {
-        const snap = await db.ref(`users/${userId}/${p}`).once('value');
-        results[p] = snap.val() || {};
-      }
-      return results;
-    }
+    async function generateLaporan(dateOrMonth, type) {
+      // type: 'harian' or 'bulanan'
+      // ambil semua data dan filter sesuai tanggal/bulan
+      const snapshotKonter = await db.ref('transaksiKonter').once('value');
+      const snapshotWarung = await db.ref('transaksiWarung').once('value');
+      const snapshotTarikTunai = await db.ref('tarikTunai').once('value');
+      const snapshotPengeluaran = await db.ref('pengeluaran').once('value');
 
-    // Generate laporan harian atau bulanan
-    async function generateLaporan(type, value) {
-      laporanHarianResult.textContent = '';
-      laporanBulananResult.textContent = '';
-      const data = await fetchAllData();
-
-      let filtered = {
-        transaksiKonter: {},
-        transaksiWarung: {},
-        tarikTunai: {},
-        pengeluaran: {}
-      };
-
-      if (type === 'harian') {
-        // filter by exact date yyyy-mm-dd
-        Object.entries(data.transaksiKonter).forEach(([k,v]) => { if(v.tanggal === value) filtered.transaksiKonter[k]=v; });
-        Object.entries(data.transaksiWarung).forEach(([k,v]) => { if(v.tanggal === value) filtered.transaksiWarung[k]=v; });
-        Object.entries(data.tarikTunai).forEach(([k,v]) => { if(v.tanggal === value) filtered.tarikTunai[k]=v; });
-        Object.entries(data.pengeluaran).forEach(([k,v]) => { if(v.tanggal === value) filtered.pengeluaran[k]=v; });
-      } else if (type === 'bulanan') {
-        // filter by yyyy-mm (prefix of tanggal)
-        Object.entries(data.transaksiKonter).forEach(([k,v]) => { if(v.tanggal.startsWith(value)) filtered.transaksiKonter[k]=v; });
-        Object.entries(data.transaksiWarung).forEach(([k,v]) => { if(v.tanggal.startsWith(value)) filtered.transaksiWarung[k]=v; });
-        Object.entries(data.tarikTunai).forEach(([k,v]) => { if(v.tanggal.startsWith(value)) filtered.tarikTunai[k]=v; });
-        Object.entries(data.pengeluaran).forEach(([k,v]) => { if(v.tanggal.startsWith(value)) filtered.pengeluaran[k]=v; });
+      function filterByDate(itemDate) {
+        if (type === 'harian') return itemDate === dateOrMonth;
+        else if (type === 'bulanan') return itemDate.startsWith(dateOrMonth);
       }
 
-      // Kalkulasi total
-      let totalPendapatanKonter = 0;
-      let totalPendapatanWarung = 0;
-      let totalTarikTunai = 0;
-      let totalPengeluaran = 0;
+      let totalPendapatan = 0;
       let totalFee = 0;
+      let totalPengeluaran = 0;
+      let totalTarikTunai = 0;
 
-      Object.values(filtered.transaksiKonter).forEach(v => {
-        totalPendapatanKonter += v.harga;
-        totalFee += v.fee;
+      // Konter
+      snapshotKonter.forEach(child => {
+        const d = child.val();
+        if (filterByDate(d.tanggal)) {
+          totalPendapatan += d.harga;
+          totalFee += d.fee;
+        }
       });
-      Object.values(filtered.transaksiWarung).forEach(v => {
-        totalPendapatanWarung += v.harga;
-        totalFee += v.fee;
+      // Warung
+      snapshotWarung.forEach(child => {
+        const d = child.val();
+        if (filterByDate(d.tanggal)) {
+          totalPendapatan += d.harga;
+          totalFee += d.fee;
+        }
       });
-      Object.values(filtered.tarikTunai).forEach(v => {
-        totalTarikTunai += v.jumlah;
-        totalFee += v.fee;
+      // Tarik Tunai
+      snapshotTarikTunai.forEach(child => {
+        const d = child.val();
+        if (filterByDate(d.tanggal)) {
+          totalTarikTunai += d.jumlah;
+          totalFee += d.fee;
+        }
       });
-      Object.values(filtered.pengeluaran).forEach(v => {
-        totalPengeluaran += v.jumlah;
+      // Pengeluaran
+      snapshotPengeluaran.forEach(child => {
+        const d = child.val();
+        if (filterByDate(d.tanggal)) {
+          totalPengeluaran += d.jumlah;
+        }
       });
 
-      // Hitung keuntungan: (pendapatan konter + warung + tarik tunai) - pengeluaran - fee
-      const keuntungan = (totalPendapatanKonter + totalPendapatanWarung + totalTarikTunai) - totalPengeluaran - totalFee;
+      const keuntungan = totalPendapatan - totalFee - totalPengeluaran - totalTarikTunai;
 
-      const hasil =
-        `Pendapatan Konter: ${formatRupiah(totalPendapatanKonter)}\n` +
-        `Pendapatan Warung: ${formatRupiah(totalPendapatanWarung)}\n` +
-        `Tarik Tunai: ${formatRupiah(totalTarikTunai)}\n` +
-        `Total Fee: ${formatRupiah(totalFee)}\n` +
-        `Pengeluaran: ${formatRupiah(totalPengeluaran)}\n` +
-        `\nKeuntungan Bersih: ${formatRupiah(keuntungan)}`;
+      const resultText = `
+        Total Pendapatan: ${formatRupiah(totalPendapatan)}<br>
+        Total Fee: ${formatRupiah(totalFee)}<br>
+        Total Pengeluaran: ${formatRupiah(totalPengeluaran)}<br>
+        Total Tarik Tunai: ${formatRupiah(totalTarikTunai)}<br>
+        <b>Keuntungan Bersih: ${formatRupiah(keuntungan)}</b>
+      `;
 
       if (type === 'harian') {
-        laporanHarianResult.textContent = hasil;
+        document.getElementById('laporanHarianResult').innerHTML = resultText;
       } else {
-        laporanBulananResult.textContent = hasil;
+        document.getElementById('laporanBulananResult').innerHTML = resultText;
       }
     }
-
   </script>
 </body>
 </html>
