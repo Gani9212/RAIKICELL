@@ -278,17 +278,13 @@
       <input type="text" id="namaBarangAdmin" required placeholder="Nama barang" autocomplete="off" />
       <label>Harga</label>
       <input type="number" id="hargaAdmin" required min="0" />
-      <label>Fee</label>
-      <input type="number" id="feeAdmin" required min="0" />
       <button class="submit-btn" type="submit">Tambah Barang</button>
     </form>
-    <input type="text" id="searchBarang" placeholder="Cari barang..." style="width:100%; margin-top: 10px; padding: 6px 8px; font-size: 14px; border-radius:4px; border:1px solid #ccc;">
     <table id="tableAdmin">
       <thead>
         <tr>
           <th>Nama Barang</th>
           <th>Harga</th>
-          <th>Fee</th>
           <th>Aksi</th>
         </tr>
       </thead>
@@ -298,279 +294,408 @@
 
   <!-- Laporan -->
   <section class="tab-content" id="laporan" style="display:none;">
-    <h3>Laporan</h3>
-    <div>
-      <div style="margin-bottom:15px;">
-        <label><b>Laba Kotor:</b> <span id="totalLabaKotor">0</span></label><br />
-        <label><b>Laba Bersih:</b> <span id="totalLabaBersih">0</span></label>
-      </div>
-      <hr>
-      <h4>Laporan Harian</h4>
-      <input type="date" id="tanggalLaporanHarian" />
-      <button class="submit-btn" id="btnGenerateLaporanHarian">Tampilkan Laporan Harian</button>
-      <div id="laporanHarianResult" style="margin-top:10px; font-weight:bold;"></div>
-      <hr>
-      <h4>Laporan Bulanan</h4>
-      <input type="month" id="bulanLaporanBulanan" />
-      <button class="submit-btn" id="btnGenerateLaporanBulanan">Tampilkan Laporan Bulanan</button>
-      <div id="laporanBulananResult" style="margin-top:10px; font-weight:bold;"></div>
+    <h3>Laporan Keuangan</h3>
+    <div class="filter-section">
+      <label>Dari: <input type="date" id="filterStart" /></label>
+      <label>Sampai: <input type="date" id="filterEnd" /></label>
+      <button id="filterBtn">Filter</button>
+      <button id="clearFilterBtn">Reset</button>
     </div>
+    <div class="info-box" id="infoPendapatan">Total Pendapatan: Rp 0</div>
+    <div class="info-box" id="infoPengeluaran">Total Pengeluaran: Rp 0</div>
+    <div class="info-box" id="infoKeuntungan">Keuntungan Bersih: Rp 0</div>
   </section>
 
 </div>
 
-<!-- Pastikan kamu sudah include Firebase SDK di HTML atau gunakan bundler yang support ES modules -->
-<script type="module">
-  // Import Firebase SDK modul
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
-  // Konfigurasi Firebase kamu
+<script>
+  // Firebase config
   const firebaseConfig = {
-    apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
+    apiKey: "AIzaSyDORXKZfPNQFe9Z2tZuwfveWPHgH8WyqGE",
     authDomain: "raikicell.firebaseapp.com",
+    databaseURL: "https://raikicell-default-rtdb.firebaseio.com",
     projectId: "raikicell",
-    storageBucket: "raikicell.firebasestorage.app",
+    storageBucket: "raikicell.appspot.com",
     messagingSenderId: "648628376778",
-    appId: "1:648628376778:web:961ca9084abeeb206bd033",
-    measurementId: "G-JG8V2E41XR"
+    appId: "1:648628376778:web:961ca9084abeeb206bd033"
   };
 
   // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const database = getDatabase(app);
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-  // Data arrays
-  let transaksiKonter = [];
-  let transaksiWarung = [];
-  let pengeluaran = [];
-  let tarikTunai = [];
-  let daftarBarangAdmin = [];
-
-  // Fungsi simpan data ke Firebase
-  function saveData() {
-    set(ref(database, 'data/transaksiKonter'), transaksiKonter);
-    set(ref(database, 'data/transaksiWarung'), transaksiWarung);
-    set(ref(database, 'data/pengeluaran'), pengeluaran);
-    set(ref(database, 'data/tarikTunai'), tarikTunai);
-    set(ref(database, 'data/daftarBarangAdmin'), daftarBarangAdmin);
+  // Utility function to generate unique IDs for entries
+  function generateId() {
+    return Date.now().toString() + Math.floor(Math.random() * 1000).toString();
   }
 
-  // Fungsi load data dari Firebase, async
-  async function loadData() {
-    const dbRef = ref(database, 'data');
-    try {
-      const snapshot = await get(dbRef);
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        transaksiKonter = data.transaksiKonter || [];
-        transaksiWarung = data.transaksiWarung || [];
-        pengeluaran = data.pengeluaran || [];
-        tarikTunai = data.tarikTunai || [];
-        daftarBarangAdmin = data.daftarBarangAdmin || [];
-      } else {
-        transaksiKonter = [];
-        transaksiWarung = [];
-        pengeluaran = [];
-        tarikTunai = [];
-        daftarBarangAdmin = [];
-      }
-      updateUIAfterLoad(); // panggil fungsi update tampilan setelah load data
-    } catch (error) {
-      console.error("Error loading data:", error);
-    }
-  }
+  // Handle sidebar tab switch
+  const tabs = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
 
-  // Contoh fungsi update UI setelah data load, sesuaikan dengan kode kamu
-  function updateUIAfterLoad() {
-    // contoh update UI transaksi konter dll
-    console.log("Data berhasil dimuat dari Firebase:", transaksiKonter, transaksiWarung, pengeluaran, tarikTunai, daftarBarangAdmin);
-    // panggil render ulang tampilan, update tabel, dsb sesuai kode kamu
-  }
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
 
-  // Contoh panggil loadData saat halaman siap
-  window.addEventListener('DOMContentLoaded', () => {
-    loadData();
+      const target = tab.getAttribute('data-tab');
+      tabContents.forEach(tc => {
+        tc.style.display = (tc.id === target) ? 'block' : 'none';
+      });
+    });
   });
 
-  // Contoh setelah transaksi berubah panggil saveData()
-  // transaksiKonter.push({ /* data baru */ });
-  // saveData();
+  // --- Transaksi Konter ---
+  const formKonter = document.getElementById('formKonter');
+  const tableKonterBody = document.querySelector('#tableKonter tbody');
 
-  // Format number to rupiah currency style
-  function formatRupiah(num) {
-    return 'Rp ' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  function renderKonterData(data) {
+    tableKonterBody.innerHTML = '';
+    if (!data) return;
+    Object.keys(data).forEach(id => {
+      const item = data[id];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.namaBarang}</td>
+        <td>Rp ${item.harga.toLocaleString()}</td>
+        <td>Rp ${item.fee.toLocaleString()}</td>
+        <td>${new Date(item.tanggal).toLocaleDateString()}</td>
+        <td><button class="delete-button" data-id="${id}" data-type="konter">Hapus</button></td>
+      `;
+      tableKonterBody.appendChild(tr);
+    });
   }
 
-  // Render tables
-  function renderTableKonter() {
-    const tbody = document.querySelector('#tableKonter tbody');
-    tbody.innerHTML = '';
-    transaksiKonter.forEach((item, i) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${item.nama}</td>
-        <td>${formatRupiah(item.harga)}</td>
-        <td>${formatRupiah(item.fee)}</td>
-        <td>${item.tanggal}</td>
-        <td><button class="delete-button" data-index="${i}" data-type="konter">Hapus</button></td>
-      `;
-      tbody.appendChild(tr);
+  function loadKonter() {
+    db.ref('konter').once('value', snapshot => {
+      const data = snapshot.val();
+      renderKonterData(data);
     });
   }
-  function renderTableWarung() {
-    const tbody = document.querySelector('#tableWarung tbody');
-    tbody.innerHTML = '';
-    transaksiWarung.forEach((item, i) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${item.nama}</td>
-        <td>${formatRupiah(item.harga)}</td>
-        <td>${formatRupiah(item.fee)}</td>
-        <td>${item.tanggal}</td>
-        <td><button class="delete-button" data-index="${i}" data-type="warung">Hapus</button></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-  function renderTablePengeluaran() {
-    const tbody = document.querySelector('#tablePengeluaran tbody');
-    tbody.innerHTML = '';
-    pengeluaran.forEach((item, i) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${item.nama}</td>
-        <td>${formatRupiah(item.jumlah)}</td>
-        <td>${item.tanggal}</td>
-        <td><button class="delete-button" data-index="${i}" data-type="pengeluaran">Hapus</button></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-  function renderTableTarikTunai() {
-    const tbody = document.querySelector('#tableTarikTunai tbody');
-    tbody.innerHTML = '';
-    tarikTunai.forEach((item, i) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${formatRupiah(item.jumlah)}</td>
-        <td>${formatRupiah(item.fee)}</td>
-        <td>${item.tanggal}</td>
-        <td><button class="delete-button" data-index="${i}" data-type="tarikTunai">Hapus</button></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-  function renderTableAdmin(filter = '') {
-    const tbody = document.querySelector('#tableAdmin tbody');
-    tbody.innerHTML = '';
-    const lowerFilter = filter.toLowerCase();
-    daftarBarangAdmin.forEach((item, i) => {
-      if (item.nama.toLowerCase().includes(lowerFilter)) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${item.nama}</td>
-          <td>${formatRupiah(item.harga)}</td>
-          <td>${formatRupiah(item.fee)}</td>
-          <td><button class="delete-button" data-index="${i}" data-type="admin">Hapus</button></td>
-        `;
-        tbody.appendChild(tr);
+
+  formKonter.addEventListener('submit', e => {
+    e.preventDefault();
+    const namaBarang = document.getElementById('namaBarangKonter').value.trim();
+    const harga = Number(document.getElementById('hargaKonter').value);
+    const fee = Number(document.getElementById('feeKonter').value);
+    if (!namaBarang || harga < 0 || fee < 0) {
+      alert('Data tidak valid');
+      return;
+    }
+    const id = generateId();
+    const tanggal = Date.now();
+    db.ref('konter/' + id).set({ namaBarang, harga, fee, tanggal }, error => {
+      if (error) alert('Gagal simpan data');
+      else {
+        formKonter.reset();
+        loadKonter();
+        loadLaporan();
       }
     });
+  });
+
+  // --- Transaksi Warung ---
+  const formWarung = document.getElementById('formWarung');
+  const tableWarungBody = document.querySelector('#tableWarung tbody');
+
+  function renderWarungData(data) {
+    tableWarungBody.innerHTML = '';
+    if (!data) return;
+    Object.keys(data).forEach(id => {
+      const item = data[id];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.namaBarang}</td>
+        <td>Rp ${item.harga.toLocaleString()}</td>
+        <td>Rp ${item.fee.toLocaleString()}</td>
+        <td>${new Date(item.tanggal).toLocaleDateString()}</td>
+        <td><button class="delete-button" data-id="${id}" data-type="warung">Hapus</button></td>
+      `;
+      tableWarungBody.appendChild(tr);
+    });
   }
 
-  // Update laba kotor dan laba bersih
-  function updateLaba() {
-    let labaKotor = 0;
-    let labaBersih = 0;
-
-    transaksiKonter.forEach(d => {
-      labaKotor += d.harga + d.fee;
-      labaBersih += d.fee;
+  function loadWarung() {
+    db.ref('warung').once('value', snapshot => {
+      const data = snapshot.val();
+      renderWarungData(data);
     });
-    transaksiWarung.forEach(d => {
-      labaKotor += d.harga + d.fee;
-      labaBersih += d.fee;
-    });
-    pengeluaran.forEach(d => {
-      labaKotor -= d.jumlah;
-    });
-    tarikTunai.forEach(d => {
-      labaKotor -= d.jumlah;
-      labaBersih += d.fee;
-    });
-
-    document.getElementById('totalLabaKotor').textContent = formatRupiah(labaKotor);
-    document.getElementById('totalLabaBersih').textContent = formatRupiah(labaBersih);
   }
 
-  // Hapus item handler
-  function deleteItem(type, index) {
-    if (!confirm('Yakin hapus data ini?')) return;
-    switch(type) {
-      case 'konter': transaksiKonter.splice(index, 1); break;
-      case 'warung': transaksiWarung.splice(index, 1); break;
-      case 'pengeluaran': pengeluaran.splice(index, 1); break;
-      case 'tarikTunai': tarikTunai.splice(index, 1); break;
-      case 'admin': daftarBarangAdmin.splice(index, 1); break;
+  formWarung.addEventListener('submit', e => {
+    e.preventDefault();
+    const namaBarang = document.getElementById('namaBarangWarung').value.trim();
+    const harga = Number(document.getElementById('hargaWarung').value);
+    const fee = Number(document.getElementById('feeWarung').value);
+    if (!namaBarang || harga < 0 || fee < 0) {
+      alert('Data tidak valid');
+      return;
     }
-    saveData();
-    renderAll();
+    const id = generateId();
+    const tanggal = Date.now();
+    db.ref('warung/' + id).set({ namaBarang, harga, fee, tanggal }, error => {
+      if (error) alert('Gagal simpan data');
+      else {
+        formWarung.reset();
+        loadWarung();
+        loadLaporan();
+      }
+    });
+  });
+
+  // --- Tarik Tunai ---
+  const formTarikTunai = document.getElementById('formTarikTunai');
+  const tableTarikTunaiBody = document.querySelector('#tableTarikTunai tbody');
+
+  function renderTarikTunaiData(data) {
+    tableTarikTunaiBody.innerHTML = '';
+    if (!data) return;
+    Object.keys(data).forEach(id => {
+      const item = data[id];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>Rp ${item.jumlah.toLocaleString()}</td>
+        <td>Rp ${item.fee.toLocaleString()}</td>
+        <td>${new Date(item.tanggal).toLocaleDateString()}</td>
+        <td><button class="delete-button" data-id="${id}" data-type="tarik-tunai">Hapus</button></td>
+      `;
+      tableTarikTunaiBody.appendChild(tr);
+    });
   }
 
-  // Render semua tabel dan update laba
-  function renderAll() {
-    renderTableKonter();
-    renderTableWarung();
-    renderTablePengeluaran();
-    renderTableTarikTunai();
-    renderTableAdmin(document.getElementById('searchBarang').value);
-    updateLaba();
+  function loadTarikTunai() {
+    db.ref('tarik-tunai').once('value', snapshot => {
+      const data = snapshot.val();
+      renderTarikTunaiData(data);
+    });
   }
 
-  // Event Listeners
-
-  // Tab switching
-  tabButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      tabContents.forEach(c => c.style.display = 'none');
-      document.getElementById(btn.dataset.tab).style.display = 'block';
-    });
-  });
-
-  // Form konter submit
-  document.getElementById('formKonter').addEventListener('submit', e => {
+  formTarikTunai.addEventListener('submit', e => {
     e.preventDefault();
-    const nama = document.getElementById('namaBarangKonter').value.trim();
-    const harga = parseInt(document.getElementById('hargaKonter').value);
-    const fee = parseInt(document.getElementById('feeKonter').value);
-    if (!nama || isNaN(harga) || isNaN(fee) || harga < 0 || fee < 0) return alert('Input tidak valid!');
-    transaksiKonter.push({
-      nama, harga, fee,
-      tanggal: new Date().toISOString().slice(0,10)
+    const jumlah = Number(document.getElementById('jumlahTarikTunai').value);
+    const fee = Number(document.getElementById('feeTarikTunai').value);
+    if (jumlah < 0 || fee < 0) {
+      alert('Data tidak valid');
+      return;
+    }
+    const id = generateId();
+    const tanggal = Date.now();
+    db.ref('tarik-tunai/' + id).set({ jumlah, fee, tanggal }, error => {
+      if (error) alert('Gagal simpan data');
+      else {
+        formTarikTunai.reset();
+        loadTarikTunai();
+        loadLaporan();
+      }
     });
-    saveData();
-    renderAll();
-    e.target.reset();
   });
 
-  // Form warung submit
-  document.getElementById('formWarung').addEventListener('submit', e => {
-    e.preventDefault();
-    const nama = document.getElementById('namaBarangWarung').value.trim();
-    const harga = parseInt(document.getElementById('hargaWarung').value);
-    const fee = parseInt(document.getElementById('feeWarung').value);
-    if (!nama || isNaN(harga) || isNaN(fee) || harga < 0 || fee < 0) return alert('Input tidak valid!');
-    transaksiWarung.push({
-      nama, harga, fee,
-      tanggal: new Date().toISOString().slice(0,10)
+  // --- Pengeluaran ---
+  const formPengeluaran = document.getElementById('formPengeluaran');
+  const tablePengeluaranBody = document.querySelector('#tablePengeluaran tbody');
+
+  function renderPengeluaranData(data) {
+    tablePengeluaranBody.innerHTML = '';
+    if (!data) return;
+    Object.keys(data).forEach(id => {
+      const item = data[id];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.namaPengeluaran}</td>
+        <td>Rp ${item.jumlah.toLocaleString()}</td>
+        <td>${new Date(item.tanggal).toLocaleDateString()}</td>
+        <td><button class="delete-button" data-id="${id}" data-type="pengeluaran">Hapus</button></td>
+      `;
+      tablePengeluaranBody.appendChild(tr);
     });
-    saveData();
-    renderAll();
-    e.target.reset();
+  }
+
+  function loadPengeluaran() {
+    db.ref('pengeluaran').once('value', snapshot => {
+      const data = snapshot.val();
+      renderPengeluaranData(data);
+    });
+  }
+
+  formPengeluaran.addEventListener('submit', e => {
+    e.preventDefault();
+    const namaPengeluaran = document.getElementById('namaPengeluaran').value.trim();
+    const jumlah = Number(document.getElementById('jumlahPengeluaran').value);
+    if (!namaPengeluaran || jumlah < 0) {
+      alert('Data tidak valid');
+      return;
+    }
+    const id = generateId();
+    const tanggal = Date.now();
+    db.ref('pengeluaran/' + id).set({ namaPengeluaran, jumlah, tanggal }, error => {
+      if (error) alert('Gagal simpan data');
+      else {
+        formPengeluaran.reset();
+        loadPengeluaran();
+        loadLaporan();
+      }
+    });
   });
+
+  // --- Admin Barang ---
+  const formAdmin = document.getElementById('formAdmin');
+  const tableAdminBody = document.querySelector('#tableAdmin tbody');
+
+  function renderAdminData(data) {
+    tableAdminBody.innerHTML = '';
+    if (!data) return;
+    Object.keys(data).forEach(id => {
+      const item = data[id];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.namaBarang}</td>
+        <td>Rp ${item.harga.toLocaleString()}</td>
+        <td><button class="delete-button" data-id="${id}" data-type="admin">Hapus</button></td>
+      `;
+      tableAdminBody.appendChild(tr);
+    });
+  }
+
+  function loadAdmin() {
+    db.ref('admin').once('value', snapshot => {
+      const data = snapshot.val();
+      renderAdminData(data);
+    });
+  }
+
+  formAdmin.addEventListener('submit', e => {
+    e.preventDefault();
+    const namaBarang = document.getElementById('namaBarangAdmin').value.trim();
+    const harga = Number(document.getElementById('hargaAdmin').value);
+    if (!namaBarang || harga < 0) {
+      alert('Data tidak valid');
+      return;
+    }
+    const id = generateId();
+    db.ref('admin/' + id).set({ namaBarang, harga }, error => {
+      if (error) alert('Gagal simpan data');
+      else {
+        formAdmin.reset();
+        loadAdmin();
+      }
+    });
+  });
+
+  // --- Delete data handler ---
+  document.body.addEventListener('click', e => {
+    if (e.target.classList.contains('delete-button')) {
+      const id = e.target.getAttribute('data-id');
+      const type = e.target.getAttribute('data-type');
+      if (confirm('Yakin ingin menghapus data?')) {
+        db.ref(type + '/' + id).remove(error => {
+          if (error) alert('Gagal hapus data');
+          else {
+            if (type === 'konter') loadKonter();
+            else if (type === 'warung') loadWarung();
+            else if (type === 'tarik-tunai') loadTarikTunai();
+            else if (type === 'pengeluaran') loadPengeluaran();
+            else if (type === 'admin') loadAdmin();
+            loadLaporan();
+          }
+        });
+      }
+    }
+  });
+
+  // --- Laporan ---
+  const infoPendapatan = document.getElementById('infoPendapatan');
+  const infoPengeluaran = document.getElementById('infoPengeluaran');
+  const infoKeuntungan = document.getElementById('infoKeuntungan');
+  const filterStart = document.getElementById('filterStart');
+  const filterEnd = document.getElementById('filterEnd');
+  const filterBtn = document.getElementById('filterBtn');
+  const clearFilterBtn = document.getElementById('clearFilterBtn');
+
+  async function loadLaporan() {
+    // ambil semua data transaksi dan pengeluaran
+    const [konterSnap, warungSnap, tarikTunaiSnap, pengeluaranSnap] = await Promise.all([
+      db.ref('konter').once('value'),
+      db.ref('warung').once('value'),
+      db.ref('tarik-tunai').once('value'),
+      db.ref('pengeluaran').once('value')
+    ]);
+
+    const konterData = konterSnap.val() || {};
+    const warungData = warungSnap.val() || {};
+    const tarikTunaiData = tarikTunaiSnap.val() || {};
+    const pengeluaranData = pengeluaranSnap.val() || {};
+
+    let pendapatan = 0;
+    let totalPengeluaran = 0;
+
+    // Filter tanggal jika ada
+    const startDate = filterStart.value ? new Date(filterStart.value).setHours(0,0,0,0) : null;
+    const endDate = filterEnd.value ? new Date(filterEnd.value).setHours(23,59,59,999) : null;
+
+    function isInRange(timestamp) {
+      if (!startDate && !endDate) return true;
+      if (startDate && endDate) return timestamp >= startDate && timestamp <= endDate;
+      if (startDate) return timestamp >= startDate;
+      if (endDate) return timestamp <= endDate;
+      return true;
+    }
+
+    // Pendapatan dari Konter
+    Object.values(konterData).forEach(item => {
+      if (isInRange(item.tanggal)) {
+        pendapatan += item.harga + item.fee;
+      }
+    });
+
+    // Pendapatan dari Warung
+    Object.values(warungData).forEach(item => {
+      if (isInRange(item.tanggal)) {
+        pendapatan += item.harga + item.fee;
+      }
+    });
+
+    // Kurangi Tarik Tunai dari pendapatan
+    Object.values(tarikTunaiData).forEach(item => {
+      if (isInRange(item.tanggal)) {
+        pendapatan -= item.jumlah + item.fee;
+      }
+    });
+
+    // Total pengeluaran
+    Object.values(pengeluaranData).forEach(item => {
+      if (isInRange(item.tanggal)) {
+        totalPengeluaran += item.jumlah;
+      }
+    });
+
+    infoPendapatan.textContent = `Total Pendapatan: Rp ${pendapatan.toLocaleString()}`;
+    infoPengeluaran.textContent = `Total Pengeluaran: Rp ${totalPengeluaran.toLocaleString()}`;
+    infoKeuntungan.textContent = `Keuntungan Bersih: Rp ${(pendapatan - totalPengeluaran).toLocaleString()}`;
+  }
+
+  filterBtn.addEventListener('click', e => {
+    e.preventDefault();
+    loadLaporan();
+  });
+
+  clearFilterBtn.addEventListener('click', e => {
+    filterStart.value = '';
+    filterEnd.value = '';
+    loadLaporan();
+  });
+
+  // Load all data initially
+  loadKonter();
+  loadWarung();
+  loadTarikTunai();
+  loadPengeluaran();
+  loadAdmin();
+  loadLaporan();
+  );
 
   // Form tarik tunai submit
   document.getElementById('formTarikTunai').addEventListener('submit', e => {
