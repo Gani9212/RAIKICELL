@@ -1,172 +1,240 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Pembukuan Kasir - Raikicell</title>
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-<style>
-  /* Reset & base */
-  * {
-    box-sizing: border-box;
-  }
-  body {
-    margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f0f4f8;
-    color: #222;
-  }
-  /* Layout */
-  .container {
-    display: flex;
-    min-height: 100vh;
-  }
-  nav.sidebar {
-    width: 240px;
-    background: #0a9396;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem 0;
-  }
-  nav.sidebar h2 {
-    margin: 0 0 1rem 1.5rem;
-    font-weight: 700;
-  }
-  nav.sidebar button {
-    background: none;
-    border: none;
-    color: white;
-    padding: 1rem 1.5rem;
-    text-align: left;
-    font-size: 1rem;
-    cursor: pointer;
-    border-left: 4px solid transparent;
-    transition: background 0.3s, border-color 0.3s;
-  }
-  nav.sidebar button:hover,
-  nav.sidebar button.active {
-    background: #94d2bd;
-    color: #005f73;
-    border-left: 4px solid #005f73;
-  }
-  main.content {
-    flex-grow: 1;
-    padding: 2rem;
-    overflow-y: auto;
-  }
-  h1 {
-    margin-top: 0;
-  }
-  /* Form & Table styles */
-  form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    max-width: 600px;
-  }
-  label {
-    flex: 1 1 180px;
-    display: flex;
-    flex-direction: column;
-    font-weight: 600;
-  }
-  input[type="text"], input[type="number"], input[type="date"], input[type="month"] {
-    padding: 0.5rem;
-    font-size: 1rem;
-    border-radius: 5px;
-    border: 1.5px solid #ccc;
-    margin-top: 0.3rem;
-  }
-  button.submit-btn {
-    padding: 0.7rem 1.6rem;
-    background: #005f73;
-    color: white;
-    border: none;
-    border-radius: 7px;
-    cursor: pointer;
-    align-self: flex-end;
-    font-weight: 700;
-    transition: background 0.3s ease;
-  }
-  button.submit-btn:hover {
-    background: #0a9396;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    max-width: 900px;
-  }
-  th, td {
-    padding: 0.8rem 1rem;
-    border-bottom: 1px solid #ddd;
-    text-align: left;
-  }
-  th {
-    background: #94d2bd;
-    color: #005f73;
-  }
-  tbody tr:hover {
-    background: #e0fbfc;
-  }
-  button.delete-btn {
-    background: #ee6c4d;
-    border: none;
-    padding: 0.3rem 0.8rem;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.3s ease;
-  }
-  button.delete-btn:hover {
-    background: #d45233;
-  }
-  /* Notification */
-  #notif {
-    color: #ee6c4d;
-    font-weight: 600;
-    margin-bottom: 1rem;
-  }
-  /* Login Overlay */
-  #loginOverlay {
-    position: fixed; top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.6);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 9999;
-  }
-  #loginBox {
-    background: white; padding: 2rem; border-radius: 8px; width: 320px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.3);
-    font-family: Arial, sans-serif;
-  }
-  #loginBox input {
-    width: 100%; margin: 10px 0; padding: 10px; box-sizing: border-box;
-    font-size: 1rem;
-  }
-  #loginBox button {
-    width: 100%; padding: 10px; background: #0a9396; color: white;
-    border: none; cursor: pointer; font-size: 1rem;
-    border-radius: 6px;
-  }
-  #loginBox button:hover {
-    background: #005f73;
-  }
-  #errorMsg {
-    color: red; font-size: 0.9em; height: 1.2em;
-    margin-top: 0.3rem;
-  }
-  body.not-logged-in > *:not(#loginOverlay) {
-    display: none !important;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>POS Raikicell - Pembukuan</title>
+  <style>
+    /* CSS asli kamu tetap dipakai */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      min-height: 100vh;
+      background: #f5f5f5;
+    }
+    nav {
+      width: 220px;
+      background: #333;
+      color: white;
+      height: 100vh;
+      padding-top: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+    }
+    nav button {
+      background: none;
+      border: none;
+      color: white;
+      padding: 15px 20px;
+      text-align: left;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      border-left: 4px solid transparent;
+      transition: border-color 0.3s, background-color 0.3s;
+    }
+    nav button.active, nav button:hover {
+      background-color: #444;
+      border-left-color: #4CAF50;
+    }
+    main {
+      flex: 1;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      background: white;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    form {
+      margin-bottom: 20px;
+      background: #eee;
+      padding: 15px;
+      border-radius: 6px;
+    }
+    form > * {
+      display: block;
+      margin-bottom: 10px;
+      width: 100%;
+      max-width: 400px;
+    }
+    input[type=text], input[type=number], input[type=date], input[type=month] {
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button.submit-btn {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 4px;
+      width: auto;
+      max-width: 150px;
+    }
+    button.submit-btn:hover {
+      background-color: #45a049;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 900px;
+      margin-bottom: 30px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #eee;
+    }
+    .delete-button {
+      cursor: pointer;
+      color: red;
+      border: none;
+      background: none;
+      font-weight: bold;
+    }
+    /* Login overlay */
+    #loginOverlay {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.6);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 9999;
+    }
+    #loginBox {
+      background: white; padding: 20px; border-radius: 8px; width: 300px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      font-family: Arial, sans-serif;
+    }
+    #loginBox input {
+      width: 100%; margin: 10px 0; padding: 10px; box-sizing: border-box;
+    }
+    #loginBox button {
+      width: 100%; padding: 10px; background: #4CAF50; color: white;
+      border: none; cursor: pointer;
+    }
+    #loginBox button:hover {
+      background: #45a049;
+    }
+    #errorMsg {
+      color: red; font-size: 0.9em; height: 1.2em;
+    }
+    body.not-logged-in > *:not(#loginOverlay) {
+      display: none !important;
+    }
+  </style>
 </head>
 <body class="not-logged-in">
 
+<nav>
+  <button class="active" data-tab="konter">Transaksi Konter</button>
+  <button data-tab="warung">Transaksi Warung</button>
+  <button data-tab="tarikTunai">Tarik Tunai</button>
+  <button data-tab="pengeluaran">Pengeluaran</button>
+  <button data-tab="adminBarang">Admin Barang</button>
+  <button data-tab="laporan">Laporan</button>
+</nav>
+
+<main>
+  <!-- Transaksi Konter -->
+  <section id="tab-konter" class="tab-content">
+    <h2>Transaksi Konter</h2>
+    <form id="formKonter">
+      <input type="text" id="namaKonter" placeholder="Nama Barang" required />
+      <input type="number" id="hargaKonter" placeholder="Harga" required min="0" />
+      <input type="number" id="feeKonter" placeholder="Fee" required min="0" />
+      <button type="submit" class="submit-btn">Tambah</button>
+    </form>
+    <table id="tableKonter">
+      <thead><tr><th>Nama</th><th>Harga</th><th>Fee</th><th>Tanggal</th><th>Aksi</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Transaksi Warung -->
+  <section id="tab-warung" class="tab-content" style="display:none;">
+    <h2>Transaksi Warung</h2>
+    <form id="formWarung">
+      <input type="text" id="namaWarung" placeholder="Nama Barang" required />
+      <input type="number" id="hargaWarung" placeholder="Harga" required min="0" />
+      <input type="number" id="feeWarung" placeholder="Fee" required min="0" />
+      <button type="submit" class="submit-btn">Tambah</button>
+    </form>
+    <table id="tableWarung">
+      <thead><tr><th>Nama</th><th>Harga</th><th>Fee</th><th>Tanggal</th><th>Aksi</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Tarik Tunai -->
+  <section id="tab-tarikTunai" class="tab-content" style="display:none;">
+    <h2>Tarik Tunai</h2>
+    <form id="formTarikTunai">
+      <input type="number" id="jumlahTarikTunai" placeholder="Jumlah" required min="0" />
+      <input type="number" id="feeTarikTunai" placeholder="Fee" required min="0" />
+      <button type="submit" class="submit-btn">Tambah</button>
+    </form>
+    <table id="tableTarikTunai">
+      <thead><tr><th>Jumlah</th><th>Fee</th><th>Tanggal</th><th>Aksi</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Pengeluaran -->
+  <section id="tab-pengeluaran" class="tab-content" style="display:none;">
+    <h2>Pengeluaran</h2>
+    <form id="formPengeluaran">
+      <input type="text" id="namaPengeluaran" placeholder="Nama Pengeluaran" required />
+      <input type="number" id="jumlahPengeluaran" placeholder="Jumlah" required min="0" />
+      <button type="submit" class="submit-btn">Tambah</button>
+    </form>
+    <table id="tablePengeluaran">
+      <thead><tr><th>Nama</th><th>Jumlah</th><th>Tanggal</th><th>Aksi</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Admin Barang -->
+  <section id="tab-adminBarang" class="tab-content" style="display:none;">
+    <h2>Admin Barang</h2>
+    <form id="formAdmin">
+      <input type="text" id="namaBarangAdmin" placeholder="Nama Barang" required />
+      <input type="number" id="hargaAdmin" placeholder="Harga" required min="0" />
+      <input type="number" id="feeAdmin" placeholder="Fee" required min="0" />
+      <button type="submit" class="submit-btn">Tambah</button>
+    </form>
+    <input type="text" id="searchBarang" placeholder="Cari Barang..." />
+    <table id="tableAdminBarang">
+      <thead><tr><th>Nama</th><th>Harga</th><th>Fee</th><th>Aksi</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Laporan -->
+  <section id="tab-laporan" class="tab-content" style="display:none;">
+    <h2>Laporan Harian</h2>
+    <input type="date" id="tanggalLaporanHarian" />
+    <button id="btnGenerateLaporanHarian" class="submit-btn">Generate</button>
+    <p id="laporanHarianResult"></p>
+
+    <h2>Laporan Bulanan</h2>
+    <input type="month" id="bulanLaporanBulanan" />
+    <button id="btnGenerateLaporanBulanan" class="submit-btn">Generate</button>
+    <p id="laporanBulananResult"></p>
+  </section>
+</main>
+
+<!-- LOGIN OVERLAY -->
 <div id="loginOverlay">
   <div id="loginBox">
     <h2>Login</h2>
@@ -177,579 +245,301 @@
   </div>
 </div>
 
-<div class="container">
-  <nav class="sidebar" role="navigation" aria-label="Sidebar Navigation">
-    <h2>Raikicell POS</h2>
-    <button class="nav-btn active" data-target="konter">Transaksi Konter</button>
-    <button class="nav-btn" data-target="warung">Transaksi Warung</button>
-    <button class="nav-btn" data-target="tarikTunai">Tarik Tunai</button>
-    <button class="nav-btn" data-target="pengeluaran">Pengeluaran</button>
-    <button class="nav-btn" data-target="adminBarang">Admin Barang</button>
-    <button class="nav-btn" data-target="laporan">Laporan</button>
-  </nav>
-  <main class="content">
-    <!-- KONTER -->
-    <section id="konter" class="tab-content">
-      <h1>Transaksi Konter</h1>
-      <div id="notifKonter"></div>
-      <form id="formKonter">
-        <label>
-          Nama Barang
-          <input type="text" id="namaKonter" required />
-        </label>
-        <label>
-          Harga (Rp)
-          <input type="number" id="hargaKonter" min="0" required />
-        </label>
-        <label>
-          Fee (Rp)
-          <input type="number" id="feeKonter" min="0" required />
-        </label>
-        <button type="submit" class="submit-btn">Tambah</button>
-      </form>
-      <table>
-        <thead>
-          <tr>
-            <th>Nama Barang</th>
-            <th>Harga (Rp)</th>
-            <th>Fee (Rp)</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="tableKonter"></tbody>
-      </table>
-    </section>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
 
-    <!-- WARUNG -->
-    <section id="warung" class="tab-content" style="display:none;">
-      <h1>Transaksi Warung</h1>
-      <div id="notifWarung"></div>
-      <form id="formWarung">
-        <label>
-          Nama Barang
-          <input type="text" id="namaWarung" required />
-        </label>
-        <label>
-          Harga (Rp)
-          <input type="number" id="hargaWarung" min="0" required />
-        </label>
-        <label>
-          Fee (Rp)
-          <input type="number" id="feeWarung" min="0" required />
-        </label>
-        <button type="submit" class="submit-btn">Tambah</button>
-      </form>
-      <table>
-        <thead>
-          <tr>
-            <th>Nama Barang</th>
-            <th>Harga (Rp)</th>
-            <th>Fee (Rp)</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="tableWarung"></tbody>
-      </table>
-    </section>
-
-    <!-- TARIK TUNAI -->
-    <section id="tarikTunai" class="tab-content" style="display:none;">
-      <h1>Tarik Tunai</h1>
-      <div id="notifTarik"></div>
-      <form id="formTarik">
-        <label>
-          Jumlah (Rp)
-          <input type="number" id="jumlahTarik" min="0" required />
-        </label>
-        <label>
-          Fee (Rp)
-          <input type="number" id="feeTarik" min="0" required />
-        </label>
-        <button type="submit" class="submit-btn">Tambah</button>
-      </form>
-      <table>
-        <thead>
-          <tr>
-            <th>Jumlah (Rp)</th>
-            <th>Fee (Rp)</th>
-            <th>Tanggal</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="tableTarik"></tbody>
-      </table>
-    </section>
-
-    <!-- PENGELUARAN -->
-    <section id="pengeluaran" class="tab-content" style="display:none;">
-      <h1>Pengeluaran</h1>
-      <div id="notifPengeluaran"></div>
-      <form id="formPengeluaran">
-        <label>
-          Nama Pengeluaran
-          <input type="text" id="namaPengeluaran" required />
-        </label>
-        <label>
-          Jumlah (Rp)
-          <input type="number" id="jumlahPengeluaran" min="0" required />
-        </label>
-        <button type="submit" class="submit-btn">Tambah</button>
-      </form>
-      <table>
-        <thead>
-          <tr>
-            <th>Nama Pengeluaran</th>
-            <th>Jumlah (Rp)</th>
-            <th>Tanggal</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="tablePengeluaran"></tbody>
-      </table>
-    </section>
-
-    <!-- ADMIN BARANG -->
-    <section id="adminBarang" class="tab-content" style="display:none;">
-      <h1>Admin Barang</h1>
-      <div id="notifAdmin"></div>
-      <form id="formAdmin">
-        <label>
-          Nama Barang
-          <input type="text" id="namaAdmin" required />
-        </label>
-        <label>
-          Harga (Rp)
-          <input type="number" id="hargaAdmin" min="0" required />
-        </label>
-        <label>
-          Fee (Rp)
-          <input type="number" id="feeAdmin" min="0" required />
-        </label>
-        <button type="submit" class="submit-btn">Tambah</button>
-      </form>
-      <input type="text" id="searchAdmin" placeholder="Cari nama barang..." style="padding:0.5rem; margin-bottom:1rem; width: 300px; border-radius:5px; border:1.5px solid #ccc;" />
-      <table>
-        <thead>
-          <tr>
-            <th>Nama Barang</th>
-            <th>Harga (Rp)</th>
-            <th>Fee (Rp)</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="tableAdmin"></tbody>
-      </table>
-    </section>
-
-    <!-- LAPORAN -->
-    <section id="laporan" class="tab-content" style="display:none;">
-      <h1>Laporan</h1>
-      <label>
-        Pilih Bulan
-        <input type="month" id="bulanLaporan" value="" />
-      </label>
-      <button id="btnGenerateLaporan" class="submit-btn" style="margin-left: 1rem;">Tampilkan</button>
-      <div id="laporanResult" style="margin-top:1rem;"></div>
-    </section>
-  </main>
-</div>
-
-<script>
-  // --- Firebase config & init ---
+  // Firebase config dan init
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
+    apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
     authDomain: "raikicell.firebaseapp.com",
-    databaseURL: "https://raikicell-default-rtdb.firebaseio.com",
     projectId: "raikicell",
-    storageBucket: "raikicell.appspot.com",
+    storageBucket: "raikicell.firebasestorage.app",
     messagingSenderId: "648628376778",
-    appId: "1:648628376778:web:961ca9084abeeb206bd033"
+    appId: "1:648628376778:web:70098faf30f123ed6bd033",
+    measurementId: "G-WWT1K74HHR"
   };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
 
-  // --- Utility functions ---
-  function formatRupiah(number) {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(number);
-  }
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
 
-  // --- Tab Navigation ---
-  const navButtons = document.querySelectorAll('nav.sidebar .nav-btn');
-  const tabContents = document.querySelectorAll('main.content .tab-content');
-
-  navButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      navButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const target = btn.dataset.target;
-      tabContents.forEach(tc => {
-        tc.style.display = (tc.id === target) ? 'block' : 'none';
-      });
-    });
-  });
-
-  // --- Notification elements ---
-  const notifKonter = document.getElementById('notifKonter');
-  const notifWarung = document.getElementById('notifWarung');
-  const notifTarik = document.getElementById('notifTarik');
-  const notifPengeluaran = document.getElementById('notifPengeluaran');
-  const notifAdmin = document.getElementById('notifAdmin');
-
-  // --- RENDER & CRUD functions per section ---
-
-  // 1. Transaksi Konter
-  const konterRef = db.ref('transaksiKonter');
-  const formKonter = document.getElementById('formKonter');
-  const tableKonter = document.getElementById('tableKonter');
-
-  function renderKonter(data) {
-    tableKonter.innerHTML = '';
-    if (!data) return;
-    Object.entries(data).forEach(([key, item]) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${item.nama}</td>
-        <td>${formatRupiah(item.harga)}</td>
-        <td>${formatRupiah(item.fee)}</td>
-        <td><button class="delete-btn" data-key="${key}">Hapus</button></td>
-      `;
-      tableKonter.appendChild(tr);
-    });
-    tableKonter.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.onclick = () => {
-        if(confirm('Yakin ingin menghapus transaksi?')) {
-          konterRef.child(btn.dataset.key).remove();
-        }
-      };
-    });
-  }
-  konterRef.on('value', snap => renderKonter(snap.val()));
-
-  formKonter.addEventListener('submit', e => {
-    e.preventDefault();
-    const nama = formKonter.namaKonter.value.trim();
-    const harga = Number(formKonter.hargaKonter.value);
-    const fee = Number(formKonter.feeKonter.value);
-    if(!nama || harga < 0 || fee < 0) return alert('Data tidak valid');
-    konterRef.push({ nama, harga, fee })
-      .then(() => {
-        notifKonter.textContent = 'Berhasil tambah transaksi konter.';
-        formKonter.reset();
-        setTimeout(() => notifKonter.textContent = '', 3000);
-      })
-      .catch(() => notifKonter.textContent = 'Gagal tambah transaksi.');
-  });
-
-  // 2. Transaksi Warung
-  const warungRef = db.ref('transaksiWarung');
-  const formWarung = document.getElementById('formWarung');
-  const tableWarung = document.getElementById('tableWarung');
-  const notifWarungEl = notifWarung;
-
-  function renderWarung(data) {
-    tableWarung.innerHTML = '';
-    if (!data) return;
-    Object.entries(data).forEach(([key, item]) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${item.nama}</td>
-        <td>${formatRupiah(item.harga)}</td>
-        <td>${formatRupiah(item.fee)}</td>
-        <td><button class="delete-btn" data-key="${key}">Hapus</button></td>
-      `;
-      tableWarung.appendChild(tr);
-    });
-    tableWarung.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.onclick = () => {
-        if(confirm('Yakin ingin menghapus transaksi?')) {
-          warungRef.child(btn.dataset.key).remove();
-        }
-      };
-    });
-  }
-  warungRef.on('value', snap => renderWarung(snap.val()));
-
-  formWarung.addEventListener('submit', e => {
-    e.preventDefault();
-    const nama = formWarung.namaWarung.value.trim();
-    const harga = Number(formWarung.hargaWarung.value);
-    const fee = Number(formWarung.feeWarung.value);
-    if(!nama || harga < 0 || fee < 0) return alert('Data tidak valid');
-    warungRef.push({ nama, harga, fee })
-      .then(() => {
-        notifWarungEl.textContent = 'Berhasil tambah transaksi warung.';
-        formWarung.reset();
-        setTimeout(() => notifWarungEl.textContent = '', 3000);
-      })
-      .catch(() => notifWarungEl.textContent = 'Gagal tambah transaksi.');
-  });
-
-  // 3. Tarik Tunai
-  const tarikRef = db.ref('tarikTunai');
-  const formTarik = document.getElementById('formTarik');
-  const tableTarik = document.getElementById('tableTarik');
-  const notifTarikEl = notifTarik;
-
-  function renderTarik(data) {
-    tableTarik.innerHTML = '';
-    if (!data) return;
-    Object.entries(data).forEach(([key, item]) => {
-      const tgl = new Date(item.tanggal).toLocaleDateString('id-ID');
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${formatRupiah(item.jumlah)}</td>
-        <td>${formatRupiah(item.fee)}</td>
-        <td>${tgl}</td>
-        <td><button class="delete-btn" data-key="${key}">Hapus</button></td>
-      `;
-      tableTarik.appendChild(tr);
-    });
-    tableTarik.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.onclick = () => {
-        if(confirm('Yakin ingin menghapus transaksi?')) {
-          tarikRef.child(btn.dataset.key).remove();
-        }
-      };
-    });
-  }
-  tarikRef.on('value', snap => renderTarik(snap.val()));
-
-  formTarik.addEventListener('submit', e => {
-    e.preventDefault();
-    const jumlah = Number(formTarik.jumlahTarik.value);
-    const fee = Number(formTarik.feeTarik.value);
-    if(jumlah < 0 || fee < 0) return alert('Data tidak valid');
-    tarikRef.push({ jumlah, fee, tanggal: new Date().toISOString() })
-      .then(() => {
-        notifTarikEl.textContent = 'Berhasil tambah tarik tunai.';
-        formTarik.reset();
-        setTimeout(() => notifTarikEl.textContent = '', 3000);
-      })
-      .catch(() => notifTarikEl.textContent = 'Gagal tambah tarik tunai.');
-  });
-
-  // 4. Pengeluaran
-  const pengeluaranRef = db.ref('pengeluaran');
-  const formPengeluaran = document.getElementById('formPengeluaran');
-  const tablePengeluaran = document.getElementById('tablePengeluaran');
-  const notifPengeluaranEl = notifPengeluaran;
-
-  function renderPengeluaran(data) {
-    tablePengeluaran.innerHTML = '';
-    if (!data) return;
-    Object.entries(data).forEach(([key, item]) => {
-      const tgl = new Date(item.tanggal).toLocaleDateString('id-ID');
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${item.nama}</td>
-        <td>${formatRupiah(item.jumlah)}</td>
-        <td>${tgl}</td>
-        <td><button class="delete-btn" data-key="${key}">Hapus</button></td>
-      `;
-      tablePengeluaran.appendChild(tr);
-    });
-    tablePengeluaran.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.onclick = () => {
-        if(confirm('Yakin ingin menghapus pengeluaran?')) {
-          pengeluaranRef.child(btn.dataset.key).remove();
-        }
-      };
-    });
-  }
-  pengeluaranRef.on('value', snap => renderPengeluaran(snap.val()));
-
-  formPengeluaran.addEventListener('submit', e => {
-    e.preventDefault();
-    const nama = formPengeluaran.namaPengeluaran.value.trim();
-    const jumlah = Number(formPengeluaran.jumlahPengeluaran.value);
-    if(!nama || jumlah < 0) return alert('Data tidak valid');
-    pengeluaranRef.push({ nama, jumlah, tanggal: new Date().toISOString() })
-      .then(() => {
-        notifPengeluaranEl.textContent = 'Berhasil tambah pengeluaran.';
-        formPengeluaran.reset();
-        setTimeout(() => notifPengeluaranEl.textContent = '', 3000);
-      })
-      .catch(() => notifPengeluaranEl.textContent = 'Gagal tambah pengeluaran.');
-  });
-
-  // 5. Admin Barang
-  const adminRef = db.ref('adminBarang');
-  const formAdmin = document.getElementById('formAdmin');
-  const tableAdmin = document.getElementById('tableAdmin');
-  const notifAdminEl = notifAdmin;
-  const searchAdminInput = document.getElementById('searchAdmin');
-
-  let allAdminData = {};
-
-  function renderAdmin(data, filter = '') {
-    tableAdmin.innerHTML = '';
-    if (!data) return;
-    allAdminData = data;
-    const filtered = Object.entries(data).filter(([key, item]) => 
-      item.nama.toLowerCase().includes(filter.toLowerCase())
-    );
-    filtered.forEach(([key, item]) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${item.nama}</td>
-        <td>${formatRupiah(item.harga)}</td>
-        <td>${formatRupiah(item.fee)}</td>
-        <td><button class="delete-btn" data-key="${key}">Hapus</button></td>
-      `;
-      tableAdmin.appendChild(tr);
-    });
-    tableAdmin.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.onclick = () => {
-        if(confirm('Yakin ingin menghapus barang?')) {
-          adminRef.child(btn.dataset.key).remove();
-        }
-      };
-    });
-  }
-  adminRef.on('value', snap => renderAdmin(snap.val()));
-
-  formAdmin.addEventListener('submit', e => {
-    e.preventDefault();
-    const nama = formAdmin.namaAdmin.value.trim();
-    const harga = Number(formAdmin.hargaAdmin.value);
-    const fee = Number(formAdmin.feeAdmin.value);
-    if(!nama || harga < 0 || fee < 0) return alert('Data tidak valid');
-    adminRef.push({ nama, harga, fee })
-      .then(() => {
-        notifAdminEl.textContent = 'Berhasil tambah barang.';
-        formAdmin.reset();
-        setTimeout(() => notifAdminEl.textContent = '', 3000);
-      })
-      .catch(() => notifAdminEl.textContent = 'Gagal tambah barang.');
-  });
-
-  searchAdminInput.addEventListener('input', () => {
-    renderAdmin(allAdminData, searchAdminInput.value);
-  });
-
-  // 6. Laporan
-  const laporanResult = document.getElementById('laporanResult');
-  const bulanInput = document.getElementById('bulanLaporan');
-  const btnGenerate = document.getElementById('btnGenerateLaporan');
-
-  // Default bulan sekarang yyyy-mm
-  const now = new Date();
-  bulanInput.value = now.toISOString().slice(0,7);
-
-  btnGenerate.addEventListener('click', () => {
-    const bulan = bulanInput.value; // format yyyy-mm
-    if(!bulan) return alert('Pilih bulan dahulu');
-
-    // Ambil data semua transaksi di bulan tersebut
-    const startDate = new Date(bulan + '-01T00:00:00');
-    const endDate = new Date(startDate);
-    endDate.setMonth(endDate.getMonth() + 1);
-
-    // Helper filter by date range
-    function filterByDate(data) {
-      if(!data) return [];
-      return Object.values(data).filter(item => {
-        const tgl = new Date(item.tanggal || item.createdAt || new Date());
-        return tgl >= startDate && tgl < endDate;
-      });
-    }
-
-    Promise.all([
-      konterRef.get(),
-      warungRef.get(),
-      tarikRef.get(),
-      pengeluaranRef.get()
-    ]).then(([konterSnap, warungSnap, tarikSnap, pengeluaranSnap]) => {
-      const konterData = konterSnap.val() || {};
-      const warungData = warungSnap.val() || {};
-      const tarikData = tarikSnap.val() || {};
-      const pengeluaranData = pengeluaranSnap.val() || {};
-
-      // Filter tarik & pengeluaran by date (transaksi konter/warung no date so assume all in month)
-      // But konter & warung data punya createdAt?
-      // Kalau tidak ada tanggal, kita anggap semua valid (karena mereka tidak pakai tanggal)
-      // Jadi filter konter/warung by default all, tarik & pengeluaran by date
-
-      // Calculate total
-      // Konter
-      let totalKonter = 0;
-      Object.values(konterData).forEach(t => {
-        totalKonter += t.harga - t.fee;
-      });
-      // Warung
-      let totalWarung = 0;
-      Object.values(warungData).forEach(t => {
-        totalWarung += t.harga - t.fee;
-      });
-      // Tarik tunai
-      let totalTarik = 0;
-      Object.values(tarikData).forEach(t => {
-        const tgl = new Date(t.tanggal);
-        if(tgl >= startDate && tgl < endDate) totalTarik += t.jumlah + t.fee;
-      });
-      // Pengeluaran
-      let totalPengeluaran = 0;
-      Object.values(pengeluaranData).forEach(t => {
-        const tgl = new Date(t.tanggal);
-        if(tgl >= startDate && tgl < endDate) totalPengeluaran += t.jumlah;
-      });
-
-      const keuntungan = totalKonter + totalWarung - totalTarik - totalPengeluaran;
-
-      laporanResult.innerHTML = `
-        <h2>Laporan Bulan ${bulan}</h2>
-        <ul>
-          <li>Total Penjualan Konter: ${formatRupiah(totalKonter)}</li>
-          <li>Total Penjualan Warung: ${formatRupiah(totalWarung)}</li>
-          <li>Total Tarik Tunai: ${formatRupiah(totalTarik)}</li>
-          <li>Total Pengeluaran: ${formatRupiah(totalPengeluaran)}</li>
-          <li><strong>Keuntungan Bersih: ${formatRupiah(keuntungan)}</strong></li>
-        </ul>
-      `;
-    }).catch(err => {
-      laporanResult.textContent = 'Gagal ambil data laporan: ' + err.message;
-    });
-  });
-
-  // --- LOGIN ---
+  // Login
+  const validUsername = "AE366813";
+  const validPassword = "Raikicell1909";
   const loginOverlay = document.getElementById('loginOverlay');
-  const loginBtn = document.getElementById('loginBtn');
-  const usernameInput = document.getElementById('username');
-  const passwordInput = document.getElementById('password');
   const errorMsg = document.getElementById('errorMsg');
+  const loginBtn = document.getElementById('loginBtn');
 
-  // Example credential (ganti sesuai keperluan)
-  const credentials = {
-    admin: 'raiki123',
-    kasir: 'kasir123'
-  };
-
-  function login(username, password) {
-    if(credentials[username] && credentials[username] === password) {
-      localStorage.setItem('loggedUser', username);
-      errorMsg.textContent = '';
-      document.body.classList.remove('not-logged-in');
-      loginOverlay.style.display = 'none';
-    } else {
-      errorMsg.textContent = 'Username atau password salah';
-    }
-  }
+  document.body.classList.add('not-logged-in');
 
   loginBtn.addEventListener('click', () => {
-    login(usernameInput.value.trim(), passwordInput.value.trim());
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (username === validUsername && password === validPassword) {
+      document.body.classList.remove('not-logged-in');
+      loginOverlay.style.display = 'none';
+      sessionStorage.setItem('loggedIn', 'true');
+      startApp();
+    } else {
+      errorMsg.textContent = 'Username atau password salah!';
+    }
   });
 
-  passwordInput.addEventListener('keypress', e => {
-    if(e.key === 'Enter') loginBtn.click();
-  });
-
-  // Auto-login if saved
-  const savedUser = localStorage.getItem('loggedUser');
-  if(savedUser && credentials[savedUser]) {
+  if (sessionStorage.getItem('loggedIn') === 'true') {
     document.body.classList.remove('not-logged-in');
     loginOverlay.style.display = 'none';
+    startApp();
+  }
+
+  // Tab switching
+  const tabs = document.querySelectorAll('nav button');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(b => b.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.tab;
+      tabContents.forEach(c => {
+        c.style.display = c.id === 'tab-' + target ? 'block' : 'none';
+      });
+    });
+  });
+
+  // Utility function: format rupiah
+  function formatRupiah(num) {
+    return 'Rp ' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  // App logic
+  function startApp() {
+    // Collections names
+    const colKonter = collection(db, 'transaksiKonter');
+    const colWarung = collection(db, 'transaksiWarung');
+    const colTarikTunai = collection(db, 'tarikTunai');
+    const colPengeluaran = collection(db, 'pengeluaran');
+    const colAdminBarang = collection(db, 'adminBarang');
+
+    // --- Render functions ---
+    async function renderTable(collectionRef, tableBody, columns) {
+      // Clear table
+      tableBody.innerHTML = '';
+      // Query all docs ordered by tanggal desc
+      const q = query(collectionRef, orderBy('tanggal', 'desc'));
+      onSnapshot(q, (querySnapshot) => {
+        tableBody.innerHTML = '';
+        querySnapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const tr = document.createElement('tr');
+          columns.forEach(col => {
+            const td = document.createElement('td');
+            if (col === 'harga' || col === 'fee' || col === 'jumlah') {
+              td.textContent = formatRupiah(data[col]);
+            } else {
+              td.textContent = data[col];
+            }
+            tr.appendChild(td);
+          });
+          // Action delete button
+          const tdAction = document.createElement('td');
+          const btnDelete = document.createElement('button');
+          btnDelete.textContent = '×';
+          btnDelete.className = 'delete-button';
+          btnDelete.title = 'Hapus';
+          btnDelete.addEventListener('click', () => {
+            deleteDoc(doc(collectionRef, docSnap.id));
+          });
+          tdAction.appendChild(btnDelete);
+          tr.appendChild(tdAction);
+
+          tableBody.appendChild(tr);
+        });
+      });
+    }
+
+    // --- Form Submit handlers ---
+    // Konter
+    document.getElementById('formKonter').addEventListener('submit', async e => {
+      e.preventDefault();
+      const nama = document.getElementById('namaKonter').value.trim();
+      const harga = parseInt(document.getElementById('hargaKonter').value);
+      const fee = parseInt(document.getElementById('feeKonter').value);
+      if (!nama || isNaN(harga) || isNaN(fee) || harga < 0 || fee < 0) return alert('Input tidak valid!');
+      await addDoc(colKonter, {
+        nama, harga, fee,
+        tanggal: new Date().toISOString().slice(0,10)
+      });
+      e.target.reset();
+    });
+
+    // Warung
+    document.getElementById('formWarung').addEventListener('submit', async e => {
+      e.preventDefault();
+      const nama = document.getElementById('namaWarung').value.trim();
+      const harga = parseInt(document.getElementById('hargaWarung').value);
+      const fee = parseInt(document.getElementById('feeWarung').value);
+      if (!nama || isNaN(harga) || isNaN(fee) || harga < 0 || fee < 0) return alert('Input tidak valid!');
+      await addDoc(colWarung, {
+        nama, harga, fee,
+        tanggal: new Date().toISOString().slice(0,10)
+      });
+      e.target.reset();
+    });
+
+    // Tarik Tunai
+    document.getElementById('formTarikTunai').addEventListener('submit', async e => {
+      e.preventDefault();
+      const jumlah = parseInt(document.getElementById('jumlahTarikTunai').value);
+      const fee = parseInt(document.getElementById('feeTarikTunai').value);
+      if (isNaN(jumlah) || isNaN(fee) || jumlah < 0 || fee < 0) return alert('Input tidak valid!');
+      await addDoc(colTarikTunai, {
+        jumlah, fee,
+        tanggal: new Date().toISOString().slice(0,10)
+      });
+      e.target.reset();
+    });
+
+    // Pengeluaran
+    document.getElementById('formPengeluaran').addEventListener('submit', async e => {
+      e.preventDefault();
+      const nama = document.getElementById('namaPengeluaran').value.trim();
+      const jumlah = parseInt(document.getElementById('jumlahPengeluaran').value);
+      if (!nama || isNaN(jumlah) || jumlah < 0) return alert('Input tidak valid!');
+      await addDoc(colPengeluaran, {
+        nama, jumlah,
+        tanggal: new Date().toISOString().slice(0,10)
+      });
+      e.target.reset();
+    });
+
+    // Admin Barang
+    document.getElementById('formAdmin').addEventListener('submit', async e => {
+      e.preventDefault();
+      const nama = document.getElementById('namaBarangAdmin').value.trim();
+      const harga = parseInt(document.getElementById('hargaAdmin').value);
+      const fee = parseInt(document.getElementById('feeAdmin').value);
+      if (!nama || isNaN(harga) || isNaN(fee) || harga < 0 || fee < 0) return alert('Input tidak valid!');
+      await addDoc(colAdminBarang, {
+        nama, harga, fee,
+        tanggal: new Date().toISOString().slice(0,10)
+      });
+      e.target.reset();
+    });
+
+    // --- Render all tables realtime ---
+    renderTable(colKonter, document.querySelector('#tableKonter tbody'), ['nama', 'harga', 'fee', 'tanggal']);
+    renderTable(colWarung, document.querySelector('#tableWarung tbody'), ['nama', 'harga', 'fee', 'tanggal']);
+    renderTable(colTarikTunai, document.querySelector('#tableTarikTunai tbody'), ['jumlah', 'fee', 'tanggal']);
+    renderTable(colPengeluaran, document.querySelector('#tablePengeluaran tbody'), ['nama', 'jumlah', 'tanggal']);
+    renderTable(colAdminBarang, document.querySelector('#tableAdminBarang tbody'), ['nama', 'harga', 'fee']);
+
+    // Search Admin Barang
+    document.getElementById('searchBarang').addEventListener('input', async e => {
+      const searchVal = e.target.value.trim().toLowerCase();
+      const tableBody = document.querySelector('#tableAdminBarang tbody');
+      // Filter client-side by fetching all then filter (simple approach)
+      const docs = await getDocs(colAdminBarang);
+      tableBody.innerHTML = '';
+      docs.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.nama.toLowerCase().includes(searchVal)) {
+          const tr = document.createElement('tr');
+          ['nama', 'harga', 'fee'].forEach(col => {
+            const td = document.createElement('td');
+            td.textContent = col === 'harga' || col === 'fee' ? formatRupiah(data[col]) : data[col];
+            tr.appendChild(td);
+          });
+          // Delete button
+          const tdAction = document.createElement('td');
+          const btnDelete = document.createElement('button');
+          btnDelete.textContent = '×';
+          btnDelete.className = 'delete-button';
+          btnDelete.title = 'Hapus';
+          btnDelete.addEventListener('click', () => {
+            deleteDoc(doc(colAdminBarang, docSnap.id));
+          });
+          tdAction.appendChild(btnDelete);
+          tr.appendChild(tdAction);
+
+          tableBody.appendChild(tr);
+        }
+      });
+    });
+
+    // Laporan harian
+    document.getElementById('btnGenerateLaporanHarian').addEventListener('click', async () => {
+      const tgl = document.getElementById('tanggalLaporanHarian').value;
+      if (!tgl) return alert('Pilih tanggal dulu!');
+      const start = tgl + 'T00:00:00';
+      const end = tgl + 'T23:59:59';
+
+      // Sum for each collection filtered by tanggal
+      const sumByCollection = async (colName, keyNama, keyJumlah) => {
+        const q = query(collection(db, colName), where('tanggal', '==', tgl));
+        const snap = await getDocs(q);
+        let total = 0;
+        snap.forEach(docSnap => {
+          const data = docSnap.data();
+          if (keyJumlah === 'harga' || keyJumlah === 'fee' || keyJumlah === 'jumlah') {
+            total += (data[keyJumlah] || 0);
+          }
+        });
+        return total;
+      };
+
+      // Calculate sums
+      const totalKonter = await sumByCollection('transaksiKonter', 'nama', 'harga');
+      const totalWarung = await sumByCollection('transaksiWarung', 'nama', 'harga');
+      const totalTarikTunai = await sumByCollection('tarikTunai', 'jumlah', 'jumlah');
+      const totalPengeluaran = await sumByCollection('pengeluaran', 'nama', 'jumlah');
+
+      const result = `
+        <strong>Laporan Tanggal ${tgl}:</strong><br>
+        Total Konter: ${formatRupiah(totalKonter)}<br>
+        Total Warung: ${formatRupiah(totalWarung)}<br>
+        Total Tarik Tunai: ${formatRupiah(totalTarikTunai)}<br>
+        Total Pengeluaran: ${formatRupiah(totalPengeluaran)}
+      `;
+      document.getElementById('laporanHarianResult').innerHTML = result;
+    });
+
+    // Laporan bulanan
+    document.getElementById('btnGenerateLaporanBulanan').addEventListener('click', async () => {
+      const bulan = document.getElementById('bulanLaporanBulanan').value;
+      if (!bulan) return alert('Pilih bulan dulu!');
+
+      // Bulan format yyyy-mm, kita filter string mulai dengan bulan itu
+      const startWith = bulan;
+
+      const sumByCollectionMonthly = async (colName, keyJumlah) => {
+        const q = query(collection(db, colName), orderBy('tanggal'));
+        const snap = await getDocs(q);
+        let total = 0;
+        snap.forEach(docSnap => {
+          const data = docSnap.data();
+          if (data.tanggal.startsWith(startWith)) {
+            total += (data[keyJumlah] || 0);
+          }
+        });
+        return total;
+      };
+
+      const totalKonter = await sumByCollectionMonthly('transaksiKonter', 'harga');
+      const totalWarung = await sumByCollectionMonthly('transaksiWarung', 'harga');
+      const totalTarikTunai = await sumByCollectionMonthly('tarikTunai', 'jumlah');
+      const totalPengeluaran = await sumByCollectionMonthly('pengeluaran', 'jumlah');
+
+      const result = `
+        <strong>Laporan Bulan ${bulan}:</strong><br>
+        Total Konter: ${formatRupiah(totalKonter)}<br>
+        Total Warung: ${formatRupiah(totalWarung)}<br>
+        Total Tarik Tunai: ${formatRupiah(totalTarikTunai)}<br>
+        Total Pengeluaran: ${formatRupiah(totalPengeluaran)}
+      `;
+      document.getElementById('laporanBulananResult').innerHTML = result;
+    });
   }
 </script>
-
-</body>
-</html>
