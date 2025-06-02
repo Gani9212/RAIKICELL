@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Website Pembukuan Usaha dengan Firebase</title>
+<title>Website Pembukuan Usaha dengan Firebase Modular SDK</title>
 <style>
-  /* CSS sesuai kode kamu (bisa disesuaikan) */
+  /* CSS sesuai kode kamu */
   body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
   #sidebar { width: 200px; background: #222; color: #fff; height: 100vh; float: left; }
   #sidebar .tab-btn { display: block; padding: 15px; cursor: pointer; border: none; background: #222; color: #fff; width: 100%; text-align: left; }
@@ -17,11 +17,6 @@
   th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
   button.delete-btn { background: #d33; color: #fff; border: none; padding: 5px 10px; cursor: pointer; }
 </style>
-
-<!-- Firebase CDN -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 </head>
 <body>
 
@@ -110,9 +105,10 @@
   </div>
 </div>
 
-<script>
-(() => {
-  // Ganti dengan config Firebase kamu
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+  import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+
   const firebaseConfig = {
     apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
     authDomain: "raikicell.firebaseapp.com",
@@ -120,26 +116,24 @@
     projectId: "raikicell",
     storageBucket: "raikicell.firebasestorage.app",
     messagingSenderId: "648628376778",
-    appId: "1:648628376778:web:70098faf30f123ed6bd033"
+    appId: "1:648628376778:web:70098faf30f123ed6bd033",
     measurementId: "G-WWT1K74HHR"
   };
 
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-  // Data arrays
   let transaksiKonter = [];
   let transaksiWarung = [];
   let pengeluaran = [];
   let tarikTunai = [];
   let daftarBarangAdmin = [];
 
-  // DOM shortcuts
+  // DOM references
   const tabButtons = document.querySelectorAll('#sidebar .tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
 
-  // Tab switching logic
+  // Tab switching
   tabButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       tabButtons.forEach(b => b.classList.remove('active'));
@@ -149,10 +143,9 @@
     });
   });
 
-  // Load data from Firebase
   async function loadData() {
     try {
-      const snapshot = await db.ref('/').get();
+      const snapshot = await get(ref(db, '/'));
       const data = snapshot.val() || {};
       transaksiKonter = data.transaksiKonter || [];
       transaksiWarung = data.transaksiWarung || [];
@@ -164,20 +157,20 @@
     }
   }
 
-  // Save data to Firebase
-  function saveData() {
-    return db.ref('/').set({
-      transaksiKonter,
-      transaksiWarung,
-      pengeluaran,
-      tarikTunai,
-      daftarBarangAdmin
-    }).catch(error => {
+  async function saveData() {
+    try {
+      await set(ref(db, '/'), {
+        transaksiKonter,
+        transaksiWarung,
+        pengeluaran,
+        tarikTunai,
+        daftarBarangAdmin
+      });
+    } catch (error) {
       alert('Gagal menyimpan data ke Firebase: ' + error.message);
-    });
+    }
   }
 
-  // Render functions
   function renderTableKonter() {
     const tbody = document.querySelector('#tableKonter tbody');
     tbody.innerHTML = '';
@@ -188,7 +181,7 @@
         <td>${item.harga}</td>
         <td>${item.fee}</td>
         <td>${item.tanggal}</td>
-        <td><button class="delete-btn" onclick="deleteItem('konter', ${i})">Hapus</button></td>
+        <td><button class="delete-btn" data-tab="konter" data-index="${i}">Hapus</button></td>
       `;
       tbody.appendChild(tr);
     });
@@ -204,7 +197,7 @@
         <td>${item.harga}</td>
         <td>${item.fee}</td>
         <td>${item.tanggal}</td>
-        <td><button class="delete-btn" onclick="deleteItem('warung', ${i})">Hapus</button></td>
+        <td><button class="delete-btn" data-tab="warung" data-index="${i}">Hapus</button></td>
       `;
       tbody.appendChild(tr);
     });
@@ -219,7 +212,7 @@
         <td>${item.nama}</td>
         <td>${item.harga}</td>
         <td>${item.tanggal}</td>
-        <td><button class="delete-btn" onclick="deleteItem('pengeluaran', ${i})">Hapus</button></td>
+        <td><button class="delete-btn" data-tab="pengeluaran" data-index="${i}">Hapus</button></td>
       `;
       tbody.appendChild(tr);
     });
@@ -231,81 +224,61 @@
     tarikTunai.forEach((item, i) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${item.nama}</td>
-        <td>${item.harga}</td>
+        <td>${item.keterangan}</td>
+        <td>${item.jumlah}</td>
         <td>${item.tanggal}</td>
-        <td><button class="delete-btn" onclick="deleteItem('tariktunai', ${i})">Hapus</button></td>
+        <td><button class="delete-btn" data-tab="tariktunai" data-index="${i}">Hapus</button></td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  function renderTableAdmin(searchTerm = '') {
+  function renderTableAdminBarang(filter = '') {
     const tbody = document.querySelector('#tableAdminBarang tbody');
     tbody.innerHTML = '';
-    const term = searchTerm.toLowerCase();
-    daftarBarangAdmin.forEach((item, i) => {
-      if (item.nama.toLowerCase().includes(term)) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${item.nama}</td>
-          <td>${item.hargaBeli}</td>
-          <td>${item.hargaJual}</td>
-          <td><button class="delete-btn" onclick="deleteItem('admin', ${i})">Hapus</button></td>
-        `;
-        tbody.appendChild(tr);
-      }
+    const filtered = daftarBarangAdmin.filter(b => b.nama.toLowerCase().includes(filter.toLowerCase()));
+    filtered.forEach((item, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.nama}</td>
+        <td>${item.hargaBeli}</td>
+        <td>${item.hargaJual}</td>
+        <td><button class="delete-btn" data-tab="admin" data-index="${i}">Hapus</button></td>
+      `;
+      tbody.appendChild(tr);
     });
   }
 
-  function updateLaba() {
-    // Contoh perhitungan keuntungan sederhana: total harga jual - total fee - total pengeluaran - total tarik tunai
-    const totalKonter = transaksiKonter.reduce((a,b) => a + b.harga, 0);
-    const totalFeeKonter = transaksiKonter.reduce((a,b) => a + b.fee, 0);
-    const totalWarung = transaksiWarung.reduce((a,b) => a + b.harga, 0);
-    const totalFeeWarung = transaksiWarung.reduce((a,b) => a + b.fee, 0);
-    const totalPengeluaran = pengeluaran.reduce((a,b) => a + b.harga, 0);
-    const totalTarikTunai = tarikTunai.reduce((a,b) => a + b.harga, 0);
+  // Calculate total keuntungan
+  function updateTotalKeuntungan() {
+    // As contoh: total keuntungan = total penjualan - total pengeluaran - total tarik tunai
+    const totalPenjualanKonter = transaksiKonter.reduce((acc, cur) => acc + Number(cur.harga) - Number(cur.fee), 0);
+    const totalPenjualanWarung = transaksiWarung.reduce((acc, cur) => acc + Number(cur.harga) - Number(cur.fee), 0);
+    const totalPengeluaran = pengeluaran.reduce((acc, cur) => acc + Number(cur.harga), 0);
+    const totalTarikTunai = tarikTunai.reduce((acc, cur) => acc + Number(cur.jumlah), 0);
 
-    const laba = (totalKonter + totalWarung) - (totalFeeKonter + totalFeeWarung + totalPengeluaran + totalTarikTunai);
+    const total = totalPenjualanKonter + totalPenjualanWarung - totalPengeluaran - totalTarikTunai;
 
-    document.getElementById('totalKeuntungan').textContent = laba.toLocaleString('id-ID');
+    document.getElementById('totalKeuntungan').textContent = total.toLocaleString('id-ID');
   }
 
-  // Delete item helper function, window global supaya bisa dipanggil di onclick HTML
-  window.deleteItem = function(tab, index) {
-    switch(tab) {
-      case 'konter': transaksiKonter.splice(index, 1); break;
-      case 'warung': transaksiWarung.splice(index, 1); break;
-      case 'pengeluaran': pengeluaran.splice(index, 1); break;
-      case 'tariktunai': tarikTunai.splice(index, 1); break;
-      case 'admin': daftarBarangAdmin.splice(index, 1); break;
-    }
-    saveData().then(() => {
-      renderAll();
-    });
-  };
+  // Event listeners forms
 
-  // Render all tables & update laba
-  function renderAll() {
-    renderTableKonter();
-    renderTableWarung();
-    renderTablePengeluaran();
-    renderTableTarikTunai();
-    renderTableAdmin(document.getElementById('searchBarang').value);
-    updateLaba();
-  }
-
-  // Event listeners for form submissions
   document.getElementById('formKonter').addEventListener('submit', e => {
     e.preventDefault();
     const nama = document.getElementById('namaBarangKonter').value.trim();
-    const harga = parseInt(document.getElementById('hargaKonter').value);
-    const fee = parseInt(document.getElementById('feeKonter').value);
-    if (!nama || isNaN(harga) || isNaN(fee) || harga < 0 || fee < 0) return alert('Input tidak valid!');
-    transaksiKonter.push({ nama, harga, fee, tanggal: new Date().toISOString().slice(0,10) });
+    const harga = Number(document.getElementById('hargaKonter').value);
+    const fee = Number(document.getElementById('feeKonter').value);
+    if (!nama || harga < 0 || fee < 0) return alert('Data tidak valid!');
+    transaksiKonter.push({
+      nama,
+      harga,
+      fee,
+      tanggal: new Date().toLocaleString()
+    });
     saveData().then(() => {
-      renderAll();
+      renderTableKonter();
+      updateTotalKeuntungan();
       e.target.reset();
     });
   });
@@ -313,12 +286,18 @@
   document.getElementById('formWarung').addEventListener('submit', e => {
     e.preventDefault();
     const nama = document.getElementById('namaBarangWarung').value.trim();
-    const harga = parseInt(document.getElementById('hargaWarung').value);
-    const fee = parseInt(document.getElementById('feeWarung').value);
-    if (!nama || isNaN(harga) || isNaN(fee) || harga < 0 || fee < 0) return alert('Input tidak valid!');
-    transaksiWarung.push({ nama, harga, fee, tanggal: new Date().toISOString().slice(0,10) });
+    const harga = Number(document.getElementById('hargaWarung').value);
+    const fee = Number(document.getElementById('feeWarung').value);
+    if (!nama || harga < 0 || fee < 0) return alert('Data tidak valid!');
+    transaksiWarung.push({
+      nama,
+      harga,
+      fee,
+      tanggal: new Date().toLocaleString()
+    });
     saveData().then(() => {
-      renderAll();
+      renderTableWarung();
+      updateTotalKeuntungan();
       e.target.reset();
     });
   });
@@ -326,23 +305,33 @@
   document.getElementById('formPengeluaran').addEventListener('submit', e => {
     e.preventDefault();
     const nama = document.getElementById('namaPengeluaran').value.trim();
-    const harga = parseInt(document.getElementById('hargaPengeluaran').value);
-    if (!nama || isNaN(harga) || harga < 0) return alert('Input tidak valid!');
-    pengeluaran.push({ nama, harga, tanggal: new Date().toISOString().slice(0,10) });
+    const harga = Number(document.getElementById('hargaPengeluaran').value);
+    if (!nama || harga < 0) return alert('Data tidak valid!');
+    pengeluaran.push({
+      nama,
+      harga,
+      tanggal: new Date().toLocaleString()
+    });
     saveData().then(() => {
-      renderAll();
+      renderTablePengeluaran();
+      updateTotalKeuntungan();
       e.target.reset();
     });
   });
 
   document.getElementById('formTarikTunai').addEventListener('submit', e => {
     e.preventDefault();
-    const nama = document.getElementById('namaTarikTunai').value.trim();
-    const harga = parseInt(document.getElementById('hargaTarikTunai').value);
-    if (!nama || isNaN(harga) || harga < 0) return alert('Input tidak valid!');
-    tarikTunai.push({ nama, harga, tanggal: new Date().toISOString().slice(0,10) });
+    const keterangan = document.getElementById('namaTarikTunai').value.trim();
+    const jumlah = Number(document.getElementById('hargaTarikTunai').value);
+    if (!keterangan || jumlah < 0) return alert('Data tidak valid!');
+    tarikTunai.push({
+      keterangan,
+      jumlah,
+      tanggal: new Date().toLocaleString()
+    });
     saveData().then(() => {
-      renderAll();
+      renderTableTarikTunai();
+      updateTotalKeuntungan();
       e.target.reset();
     });
   });
@@ -350,28 +339,62 @@
   document.getElementById('formAdminBarang').addEventListener('submit', e => {
     e.preventDefault();
     const nama = document.getElementById('namaBarangAdmin').value.trim();
-    const hargaBeli = parseInt(document.getElementById('hargaBeliAdmin').value);
-    const hargaJual = parseInt(document.getElementById('hargaJualAdmin').value);
-    if (!nama || isNaN(hargaBeli) || isNaN(hargaJual) || hargaBeli < 0 || hargaJual < 0) return alert('Input tidak valid!');
+    const hargaBeli = Number(document.getElementById('hargaBeliAdmin').value);
+    const hargaJual = Number(document.getElementById('hargaJualAdmin').value);
+    if (!nama || hargaBeli < 0 || hargaJual < 0) return alert('Data tidak valid!');
     daftarBarangAdmin.push({ nama, hargaBeli, hargaJual });
     saveData().then(() => {
-      renderAll();
+      renderTableAdminBarang();
       e.target.reset();
     });
   });
 
-  // Search filter for admin barang
+  // Delete button handler (event delegation)
+  document.body.addEventListener('click', e => {
+    if (e.target.classList.contains('delete-btn')) {
+      const tab = e.target.dataset.tab;
+      const index = Number(e.target.dataset.index);
+      if (isNaN(index)) return;
+      switch (tab) {
+        case 'konter':
+          transaksiKonter.splice(index, 1);
+          renderTableKonter();
+          break;
+        case 'warung':
+          transaksiWarung.splice(index, 1);
+          renderTableWarung();
+          break;
+        case 'pengeluaran':
+          pengeluaran.splice(index, 1);
+          renderTablePengeluaran();
+          break;
+        case 'tariktunai':
+          tarikTunai.splice(index, 1);
+          renderTableTarikTunai();
+          break;
+        case 'admin':
+          daftarBarangAdmin.splice(index, 1);
+          renderTableAdminBarang();
+          break;
+      }
+      saveData().then(updateTotalKeuntungan);
+    }
+  });
+
+  // Search admin barang
   document.getElementById('searchBarang').addEventListener('input', e => {
-    renderTableAdmin(e.target.value);
+    renderTableAdminBarang(e.target.value);
   });
 
-  // Load data & render on start
+  // Inisialisasi data dan render saat halaman siap
   loadData().then(() => {
-    renderAll();
+    renderTableKonter();
+    renderTableWarung();
+    renderTablePengeluaran();
+    renderTableTarikTunai();
+    renderTableAdminBarang();
+    updateTotalKeuntungan();
   });
-
-})();
 </script>
-
 </body>
 </html>
