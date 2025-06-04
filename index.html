@@ -1,510 +1,626 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Website Pembukuan</title>
-  <style>
-    /* Style sidebar kiri */
-    body {
-      margin: 0; 
-      font-family: Arial, sans-serif;
-      display: flex;
-      height: 100vh;
-    }
-    #sidebar {
-      width: 220px;
-      background-color: #2c3e50;
-      color: white;
-      display: flex;
-      flex-direction: column;
-    }
-    #sidebar h2 {
-      text-align: center;
-      padding: 1rem 0;
-      margin: 0;
-      background: #1a252f;
-    }
-    #sidebar button {
-      background: none;
-      border: none;
-      color: white;
-      padding: 1rem;
-      text-align: left;
-      cursor: pointer;
-      font-size: 1rem;
-      border-bottom: 1px solid #34495e;
-      width: 100%;
-    }
-    #sidebar button.active, #sidebar button:hover {
-      background-color: #34495e;
-    }
-    #content {
-      flex-grow: 1;
-      padding: 1rem;
-      overflow-y: auto;
-    }
-    /* Form styling */
-    form {
-      margin-bottom: 1rem;
-    }
-    form input {
-      padding: 0.5rem;
-      margin-right: 0.5rem;
-      font-size: 1rem;
-    }
-    form button {
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    /* Table styling */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-    table, th, td {
-      border: 1px solid #ccc;
-    }
-    th, td {
-      padding: 0.5rem;
-      text-align: left;
-    }
-    /* Responsive */
-    @media (max-width: 600px) {
-      body {
-        flex-direction: column;
-      }
-      #sidebar {
-        width: 100%;
-        flex-direction: row;
-        overflow-x: auto;
-      }
-      #sidebar button {
-        flex-grow: 1;
-        text-align: center;
-        border-bottom: none;
-        border-right: 1px solid #34495e;
-      }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pembukuan Usaha</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .sidebar {
+    width: 200px;
+    background-color: #222;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 5px;
+  }
+  .sidebar button {
+    background-color: #444;
+    border: none;
+    color: white;
+    padding: 10px 15px;
+    margin: 5px 10px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 4px;
+    text-align: left;
+    transition: background-color 0.3s;
+  }
+  .sidebar button.active, .sidebar button:hover {
+    background-color: #00aaff;
+  }
+  .content {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
+  input, select, button {
+    margin: 5px 0;
+    padding: 7px;
+    font-size: 16px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  th, td {
+    border: 1px solid #aaa;
+    padding: 8px;
+    text-align: left;
+  }
+  .small {
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+  #uang-display {
+    position: fixed;
+    bottom: 10px;
+    left: 210px;
+    background: #f2f2f2;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 18px;
+  }
+</style>
 </head>
 <body>
 
-  <div id="sidebar">
-    <h2>Menu</h2>
-    <button class="tabBtn active" data-tab="konter">Transaksi Konter</button>
-    <button class="tabBtn" data-tab="warung">Transaksi Warung</button>
-    <button class="tabBtn" data-tab="tarikTunai">Tarik Tunai</button>
-    <button class="tabBtn" data-tab="pengeluaran">Pengeluaran</button>
-    <button class="tabBtn" data-tab="adminBarang">Admin Barang</button>
-    <button class="tabBtn" data-tab="laporan">Laporan</button>
+<div class="sidebar">
+  <button id="tab-konter-btn" class="active">Transaksi Konter</button>
+  <button id="tab-warung-btn">Transaksi Warung</button>
+  <button id="tab-transaksi-btn">Transaksi Manual</button>
+  <button id="tab-edit-warung-btn">Edit Barang Warung</button>
+  <button id="tab-raikinet-btn">Transaksi Raikinet</button>
+  <button id="tab-edit-raikicell-btn">Edit Raikicell</button>
+  <button id="tab-pengeluaran-btn">Pengeluaran</button>
+  <button id="tab-laporan-btn">Laporan</button>
+</div>
+
+<div class="content">
+  <!-- Transaksi Konter -->
+  <div id="tab-konter" class="tab-content active">
+    <h2>Transaksi Konter</h2>
+    <input type="text" id="konter-nama" placeholder="Nama Barang" />
+    <input type="number" id="konter-fee" placeholder="Fee (Keuntungan)" />
+    <input type="number" id="konter-harga" placeholder="Harga Jual" />
+    <button onclick="tambahKonter()">Tambah</button>
+    <table>
+      <thead><tr><th>Nama</th><th>Fee</th><th>Harga</th><th>Aksi</th></tr></thead>
+      <tbody id="tabel-konter"></tbody>
+    </table>
   </div>
 
-  <div id="content">
-
-    <!-- Form Konter -->
-    <div class="tabContent" id="konter" style="display: block;">
-      <h3>Transaksi Konter</h3>
-      <form id="formKonter">
-        <input type="text" id="namaBarangKonter" placeholder="Nama Barang" required />
-        <input type="number" id="hargaKonter" placeholder="Harga Jual" min="0" required />
-        <input type="number" id="feeKonter" placeholder="Fee" min="0" required />
-        <button type="submit">Tambah</button>
-        <button type="button" class="btnBatal" data-form="formKonter">Batal</button>
-      </form>
-      <table id="tableKonter">
-        <thead><tr><th>Nama Barang</th><th>Harga Jual</th><th>Fee</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <!-- Form Warung -->
-    <div class="tabContent" id="warung" style="display:none;">
-      <h3>Transaksi Warung</h3>
-      <form id="formWarung">
-        <input type="text" id="namaBarangWarung" placeholder="Nama Barang" required />
-        <input type="number" id="hargaWarung" placeholder="Harga Jual" min="0" required />
-        <input type="number" id="feeWarung" placeholder="Fee" min="0" required />
-        <button type="submit">Tambah</button>
-        <button type="button" class="btnBatal" data-form="formWarung">Batal</button>
-      </form>
-      <table id="tableWarung">
-        <thead><tr><th>Nama Barang</th><th>Harga Jual</th><th>Fee</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <!-- Form Tarik Tunai -->
-    <div class="tabContent" id="tarikTunai" style="display:none;">
-      <h3>Tarik Tunai</h3>
-      <form id="formTarikTunai">
-        <input type="number" id="jumlahTarikTunai" placeholder="Jumlah Tarik Tunai" min="0" required />
-        <input type="number" id="feeTarikTunai" placeholder="Fee" min="0" required />
-        <button type="submit">Tambah</button>
-        <button type="button" class="btnBatal" data-form="formTarikTunai">Batal</button>
-      </form>
-      <table id="tableTarikTunai">
-        <thead><tr><th>Jumlah Tarik Tunai</th><th>Fee</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <!-- Form Pengeluaran -->
-    <div class="tabContent" id="pengeluaran" style="display:none;">
-      <h3>Pengeluaran</h3>
-      <form id="formPengeluaran">
-        <input type="text" id="namaPengeluaran" placeholder="Nama Pengeluaran" required />
-        <input type="number" id="jumlahPengeluaran" placeholder="Jumlah" min="0" required />
-        <button type="submit">Tambah</button>
-        <button type="button" class="btnBatal" data-form="formPengeluaran">Batal</button>
-      </form>
-      <table id="tablePengeluaran">
-        <thead><tr><th>Nama Pengeluaran</th><th>Jumlah</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <!-- Form Admin Barang -->
-    <div class="tabContent" id="adminBarang" style="display:none;">
-      <h3>Admin Barang</h3>
-      <form id="formAdminBarang">
-        <input type="text" id="namaBarangAdmin" placeholder="Nama Barang" required />
-        <input type="number" id="hargaAdmin" placeholder="Harga" min="0" required />
-        <input type="number" id="feeAdmin" placeholder="Fee" min="0" required />
-        <button type="submit">Tambah</button>
-        <button type="button" class="btnBatal" data-form="formAdminBarang">Batal</button>
-      </form>
-      <table id="tableAdminBarang">
-        <thead><tr><th>Nama Barang</th><th>Harga</th><th>Fee</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <!-- Laporan -->
-    <div class="tabContent" id="laporan" style="display:none;">
-      <h3>Laporan</h3>
-      <button id="btnLaporanHarian">Laporan Harian</button>
-      <button id="btnLaporanBulanan">Laporan Bulanan</button>
-      <div id="laporanHarian" style="display:none;">
-        <h4>Laporan Harian</h4>
-        <pre id="outputLaporanHarian"></pre>
-      </div>
-      <div id="laporanBulanan" style="display:none;">
-        <h4>Laporan Bulanan</h4>
-        <pre id="outputLaporanBulanan"></pre>
-      </div>
-    </div>
-
+  <!-- Transaksi Warung -->
+  <div id="tab-warung" class="tab-content">
+    <h2>Transaksi Warung</h2>
+    <select id="warung-barang"></select><br/>
+    <input type="number" id="warung-jumlah" placeholder="Jumlah" min="1" />
+    <button onclick="tambahWarung()">Tambah</button>
+    <table>
+      <thead><tr><th>Nama</th><th>Jumlah</th><th>Fee</th><th>Harga</th><th>Aksi</th></tr></thead>
+      <tbody id="tabel-warung"></tbody>
+    </table>
   </div>
 
-  <!-- Firebase CDN and Initialization -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+  <!-- Transaksi Manual -->
+  <div id="tab-transaksi" class="tab-content">
+    <h2>Transaksi Manual</h2>
+    <input type="text" id="manual-nama" placeholder="Nama Barang" />
+    <input type="number" id="manual-fee" placeholder="Fee (Keuntungan)" />
+    <input type="number" id="manual-harga" placeholder="Harga Jual" />
+    <button onclick="tambahManual()">Tambah</button>
+    <table>
+      <thead><tr><th>Nama</th><th>Fee</th><th>Harga</th><th>Aksi</th></tr></thead>
+      <tbody id="tabel-manual"></tbody>
+    </table>
+  </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
-      authDomain: "raikicell.firebaseapp.com",
-      databaseURL: "https://raikicell-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "raikicell",
-      storageBucket: "raikicell.firebasestorage.app",
-      messagingSenderId: "648628376778",
-      appId: "1:648628376778:web:70098faf30f123ed6bd033",
-      measurementId: "G-WWT1K74HHR"
-    };
+  <!-- Edit Barang Warung -->
+  <div id="tab-edit-warung" class="tab-content">
+    <h2>Edit Barang Warung</h2>
+    <input type="text" id="edit-warung-nama" placeholder="Nama Barang" />
+    <input type="number" id="edit-warung-fee" placeholder="Fee (Keuntungan)" />
+    <input type="number" id="edit-warung-harga" placeholder="Harga Jual" />
+    <button onclick="tambahEditWarung()">Tambah Barang</button>
+    <table>
+      <thead><tr><th>Nama</th><th>Fee</th><th>Harga</th><th>Aksi</th></tr></thead>
+      <tbody id="tabel-edit-warung"></tbody>
+    </table>
+  </div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  <!-- Transaksi Raikinet -->
+  <div id="tab-raikinet" class="tab-content">
+    <h2>Transaksi Raikinet</h2>
+    <select id="raikinet-barang"></select><br/>
+    <input type="number" id="raikinet-jumlah" placeholder="Jumlah" min="1" />
+    <button onclick="tambahRaikinet()">Tambah</button>
+    <table>
+      <thead><tr><th>Nama</th><th>Jumlah</th><th>Fee</th><th>Harga</th><th>Aksi</th></tr></thead>
+      <tbody id="tabel-raikinet"></tbody>
+    </table>
+  </div>
 
-    // Utility function to format date YYYY-MM-DD
-    function formatDate(date = new Date()) {
-      return date.toISOString().split('T')[0];
-    }
-    // Utility function to format month YYYY-MM
-    function formatMonth(date = new Date()) {
-      return date.toISOString().slice(0,7);
-    }
+  <!-- Edit Raikicell -->
+  <div id="tab-edit-raikicell" class="tab-content">
+    <h2>Edit Barang Raikicell</h2>
+    <input type="text" id="edit-raikicell-nama" placeholder="Nama Barang" />
+    <input type="number" id="edit-raikicell-fee" placeholder="Fee (Keuntungan)" />
+    <input type="number" id="edit-raikicell-harga" placeholder="Harga Jual" />
+    <button onclick="tambahEditRaikicell()">Tambah Barang</button>
+    <table>
+      <thead><tr><th>Nama</th><th>Fee</th><th>Harga</th><th>Aksi</th></tr></thead>
+      <tbody id="tabel-edit-raikicell"></tbody>
+    </table>
+  </div>
 
-    // Tab switching
-    const tabs = document.querySelectorAll('.tabBtn');
-    const tabContents = document.querySelectorAll('.tabContent');
+  <!-- Pengeluaran -->
+  <div id="tab-pengeluaran" class="tab-content">
+    <h2>Pengeluaran</h2>
+    <input type="text" id="pengeluaran-ket" placeholder="Keterangan" />
+    <input type="number" id="pengeluaran-jumlah" placeholder="Jumlah" />
+    <button onclick="tambahPengeluaran()">Tambah</button>
+    <table>
+      <thead><tr><th>Keterangan</th><th>Jumlah</th><th>Aksi</th></tr></thead>
+      <tbody id="tabel-pengeluaran"></tbody>
+    </table>
+  </div>
 
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tabContents.forEach(tc => tc.style.display = 'none');
+  <!-- Laporan -->
+  <div id="tab-laporan" class="tab-content">
+    <h2>Laporan</h2>
+    <table>
+      <thead><tr><th>Jenis</th><th>Nama</th><th>Jumlah</th><th>Fee</th><th>Harga</th></tr></thead>
+      <tbody id="tabel-laporan"></tbody>
+      <tfoot>
+        <tr>
+          <th colspan="3">Total</th>
+          <th id="total-fee">0</th>
+          <th id="total-harga-jual">0</th>
+        </tr>
+        <tr>
+          <th colspan="4">Total Pengeluaran</th>
+          <th id="total-pengeluaran">0</th>
+        </tr>
+        <tr>
+          <th colspan="4">Saldo Bersih</th>
+          <th id="saldo-bersih">0</th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
 
-        tab.classList.add('active');
-        const tabId = tab.dataset.tab;
-        document.getElementById(tabId).style.display = 'block';
+<div id="uang-display">Uang: <span id="total-uang">0</span></div>
+
+<script>
+  // Data key names
+  const KEY_KONTER = 'data_konter';
+  const KEY_WARUNG = 'data_warung';
+  const KEY_MANUAL = 'data_manual';
+  const KEY_PENGELUARAN = 'data_pengeluaran';
+  const KEY_RAIKINET = 'data_raikinet';
+  const KEY_EDIT_RAIKICELL = 'data_edit_raikicell';
+
+  // Inisialisasi default barang warung dan raikinet (kalau belum ada)
+  if (!localStorage.getItem(KEY_WARUNG)) {
+    // Contoh barang warung awal
+    const defaultWarung = [
+      {nama: 'Mie', fee: 1500, harga: 5000},
+      {nama: 'Es Cekek', fee: 500, harga: 1000},
+      {nama: 'Pop Ice', fee: 1000, harga: 3000},
+      {nama: 'Chocolatos', fee: 1000, harga: 4000},
+      {nama: 'Kopi', fee: 1000, harga: 3000},
+    ];
+    localStorage.setItem(KEY_WARUNG, JSON.stringify(defaultWarung));
+  }
+  if (!localStorage.getItem(KEY_RAIKINET)) {
+    const defaultRaikinet = [
+      {nama: 'Pulsa 5k', fee: 500, harga: 5000},
+      {nama: 'Pulsa 10k', fee: 1000, harga: 10000}
+    ];
+    localStorage.setItem(KEY_RAIKINET, JSON.stringify(defaultRaikinet));
+  }
+  if (!localStorage.getItem(KEY_EDIT_RAIKICELL)) {
+    localStorage.setItem(KEY_EDIT_RAIKICELL, JSON.stringify([]));
+  }
+
+  // Fungsi pindah tab
+  function setActiveTab(tabId, btnId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    document.getElementById(btnId).classList.add('active');
+    updateAllTables();
+  }
+
+  document.getElementById('tab-konter-btn').addEventListener('click', () => setActiveTab('tab-konter', 'tab-konter-btn'));
+  document.getElementById('tab-warung-btn').addEventListener('click', () => setActiveTab('tab-warung', 'tab-warung-btn'));
+  document.getElementById('tab-transaksi-btn').addEventListener('click', () => setActiveTab('tab-transaksi', 'tab-transaksi-btn'));
+  document.getElementById('tab-edit-warung-btn').addEventListener('click', () => setActiveTab('tab-edit-warung', 'tab-edit-warung-btn'));
+  document.getElementById('tab-raikinet-btn').addEventListener('click', () => setActiveTab('tab-raikinet', 'tab-raikinet-btn'));
+  document.getElementById('tab-edit-raikicell-btn').addEventListener('click', () => setActiveTab('tab-edit-raikicell', 'tab-edit-raikicell-btn'));
+  document.getElementById('tab-pengeluaran-btn').addEventListener('click', () => setActiveTab('tab-pengeluaran', 'tab-pengeluaran-btn'));
+  document.getElementById('tab-laporan-btn').addEventListener('click', () => setActiveTab('tab-laporan', 'tab-laporan-btn'));
+
+  // --- Transaksi Konter ---
+  function tambahKonter() {
+    const nama = document.getElementById('konter-nama').value.trim();
+    const fee = parseInt(document.getElementById('konter-fee').value);
+    const harga = parseInt(document.getElementById('konter-harga').value);
+    if (!nama || isNaN(fee) || isNaN(harga)) return alert('Isi semua kolom dengan benar.');
+
+    let data = JSON.parse(localStorage.getItem(KEY_KONTER) || '[]');
+    data.push({nama, fee, harga});
+    localStorage.setItem(KEY_KONTER, JSON.stringify(data));
+    clearInputs(['konter-nama', 'konter-fee', 'konter-harga']);
+    updateTabelKonter();
+    updateTotalUang();
+  }
+  function updateTabelKonter() {
+    const data = JSON.parse(localStorage.getItem(KEY_KONTER) || '[]');
+    const tbody = document.getElementById('tabel-konter');
+    tbody.innerHTML = '';
+    data.forEach((item, i) => {
+      tbody.innerHTML += `<tr>
+        <td>${item.nama}</td>
+        <td>${item.fee}</td>
+        <td>${item.harga}</td>
+        <td><button onclick="hapusKonter(${i})" class="small">Hapus</button></td>
+      </tr>`;
+    });
+  }
+  function hapusKonter(idx) {
+    let data = JSON.parse(localStorage.getItem(KEY_KONTER) || '[]');
+    data.splice(idx, 1);
+    localStorage.setItem(KEY_KONTER, JSON.stringify(data));
+    updateTabelKonter();
+    updateTotalUang();
+  }
+
+  // --- Transaksi Warung ---
+  function isiDropdownWarung() {
+    const warung = JSON.parse(localStorage.getItem(KEY_WARUNG) || '[]');
+    const sel = document.getElementById('warung-barang');
+    sel.innerHTML = '';
+    warung.forEach((item, i) => {
+      sel.innerHTML += `<option value="${i}">${item.nama} (Rp${item.harga.toLocaleString()})</option>`;
+    });
+  }
+  function tambahWarung() {
+    const idx = parseInt(document.getElementById('warung-barang').value);
+    const jumlah = parseInt(document.getElementById('warung-jumlah').value);
+    if (isNaN(idx) || isNaN(jumlah) || jumlah < 1) return alert('Pilih barang dan isi jumlah dengan benar.');
+
+    const warung = JSON.parse(localStorage.getItem(KEY_WARUNG) || '[]');
+    const barang = warung[idx];
+
+    let data = JSON.parse(localStorage.getItem(KEY_WARUNG + '_transaksi') || '[]');
+    data.push({
+      nama: barang.nama,
+      fee: barang.fee * jumlah,
+      harga: barang.harga * jumlah,
+      jumlah: jumlah
+    });
+    localStorage.setItem(KEY_WARUNG + '_transaksi', JSON.stringify(data));
+    clearInputs(['warung-jumlah']);
+    updateTabelWarung();
+    updateTotalUang();
+  }
+  function updateTabelWarung() {
+    const data = JSON.parse(localStorage.getItem(KEY_WARUNG + '_transaksi') || '[]');
+    const tbody = document.getElementById('tabel-warung');
+    tbody.innerHTML = '';
+    data.forEach((item, i) => {
+      tbody.innerHTML += `<tr>
+        <td>${item.nama}</td>
+        <td>${item.jumlah}</td>
+        <td>${item.fee}</td>
+        <td>${item.harga}</td>
+        <td><button onclick="hapusWarung(${i})" class="small">Hapus</button></td>
+      </tr>`;
+    });
+  }
+  function hapusWarung(idx) {
+    let data = JSON.parse(localStorage.getItem(KEY_WARUNG + '_transaksi') || '[]');
+    data.splice(idx, 1);
+    localStorage.setItem(KEY_WARUNG + '_transaksi', JSON.stringify(data));
+    updateTabelWarung();
+    updateTotalUang();
+  }
+
+  // --- Transaksi Manual ---
+  function tambahManual() {
+    const nama = document.getElementById('manual-nama').value.trim();
+    const fee = parseInt(document.getElementById('manual-fee').value);
+    const harga = parseInt(document.getElementById('manual-harga').value);
+    if (!nama || isNaN(fee) || isNaN(harga)) return alert('Isi semua kolom dengan benar.');
+
+    let data = JSON.parse(localStorage.getItem(KEY_MANUAL) || '[]');
+    data.push({nama, fee, harga});
+    localStorage.setItem(KEY_MANUAL, JSON.stringify(data));
+    clearInputs(['manual-nama', 'manual-fee', 'manual-harga']);
+    updateTabelManual();
+    updateTotalUang();
+  }
+  function updateTabelManual() {
+    const data = JSON.parse(localStorage.getItem(KEY_MANUAL) || '[]');
+    const tbody = document.getElementById('tabel-manual');
+    tbody.innerHTML = '';
+    data.forEach((item, i) => {
+      tbody.innerHTML += `<tr>
+        <td>${item.nama}</td>
+        <td>${item.fee}</td>
+        <td>${item.harga}</td>
+        <td><button onclick="hapusManual(${i})" class="small">Hapus</button></td>
+      </tr>`;
+    });
+  }
+  function hapusManual(idx) {
+    let data = JSON.parse(localStorage.getItem(KEY_MANUAL) || '[]');
+    data.splice(idx, 1);
+    localStorage.setItem(KEY_MANUAL, JSON.stringify(data));
+    updateTabelManual();
+    updateTotalUang();
+  }
+
+  // --- Edit Barang Warung ---
+  function tambahEditWarung() {
+    const nama = document.getElementById('edit-warung-nama').value.trim();
+    const fee = parseInt(document.getElementById('edit-warung-fee').value);
+    const harga = parseInt(document.getElementById('edit-warung-harga').value);
+    if (!nama || isNaN(fee) || isNaN(harga)) return alert('Isi semua kolom dengan benar.');
+
+    let data = JSON.parse(localStorage.getItem(KEY_WARUNG) || '[]');
+    data.push({nama, fee, harga});
+    localStorage.setItem(KEY_WARUNG, JSON.stringify(data));
+    clearInputs(['edit-warung-nama', 'edit-warung-fee', 'edit-warung-harga']);
+    updateTabelEditWarung();
+    isiDropdownWarung();
+  }
+  function updateTabelEditWarung() {
+    const data = JSON.parse(localStorage.getItem(KEY_WARUNG) || '[]');
+    const tbody = document.getElementById('tabel-edit-warung');
+    tbody.innerHTML = '';
+    data.forEach((item, i) => {
+      tbody.innerHTML += `<tr>
+        <td>${item.nama}</td>
+        <td>${item.fee}</td>
+        <td>${item.harga}</td>
+        <td><button onclick="hapusEditWarung(${i})" class="small">Hapus</button></td>
+      </tr>`;
+    });
+  }
+  function hapusEditWarung(idx) {
+    let data = JSON.parse(localStorage.getItem(KEY_WARUNG) || '[]');
+    data.splice(idx, 1);
+    localStorage.setItem(KEY_WARUNG, JSON.stringify(data));
+    updateTabelEditWarung();
+    isiDropdownWarung();
+  }
+
+  // --- Transaksi Raikinet ---
+  function isiDropdownRaikinet() {
+    const raikinet = JSON.parse(localStorage.getItem(KEY_RAIKINET) || '[]');
+    const sel = document.getElementById('raikinet-barang');
+    sel.innerHTML = '';
+    raikinet.forEach((item, i) => {
+      sel.innerHTML += `<option value="${i}">${item.nama} (Rp${item.harga.toLocaleString()})</option>`;
+    });
+  }
+  function tambahRaikinet() {
+    const idx = parseInt(document.getElementById('raikinet-barang').value);
+    const jumlah = parseInt(document.getElementById('raikinet-jumlah').value);
+    if (isNaN(idx) || isNaN(jumlah) || jumlah < 1) return alert('Pilih barang dan isi jumlah dengan benar.');
+
+    const raikinet = JSON.parse(localStorage.getItem(KEY_RAIKINET) || '[]');
+    const barang = raikinet[idx];
+
+    let data = JSON.parse(localStorage.getItem(KEY_RAIKINET + '_transaksi') || '[]');
+    data.push({
+      nama: barang.nama,
+      fee: barang.fee * jumlah,
+      harga: barang.harga * jumlah,
+      jumlah: jumlah
+    });
+    localStorage.setItem(KEY_RAIKINET + '_transaksi', JSON.stringify(data));
+    clearInputs(['raikinet-jumlah']);
+    updateTabelRaikinet();
+    updateTotalUang();
+  }
+  function updateTabelRaikinet() {
+    const data = JSON.parse(localStorage.getItem(KEY_RAIKINET + '_transaksi') || '[]');
+    const tbody = document.getElementById('tabel-raikinet');
+    tbody.innerHTML = '';
+    data.forEach((item, i) => {
+      tbody.innerHTML += `<tr>
+        <td>${item.nama}</td>
+        <td>${item.jumlah}</td>
+        <td>${item.fee}</td>
+        <td>${item.harga}</td>
+        <td><button onclick="hapusRaikinet(${i})" class="small">Hapus</button></td>
+      </tr>`;
+    });
+  }
+  function hapusRaikinet(idx) {
+    let data = JSON.parse(localStorage.getItem(KEY_RAIKINET + '_transaksi') || '[]');
+    data.splice(idx, 1);
+    localStorage.setItem(KEY_RAIKINET + '_transaksi', JSON.stringify(data));
+    updateTabelRaikinet();
+    updateTotalUang();
+  }
+
+  // --- Edit Barang Raikicell ---
+  function tambahEditRaikicell() {
+    const nama = document.getElementById('edit-raikicell-nama').value.trim();
+    const fee = parseInt(document.getElementById('edit-raikicell-fee').value);
+    const harga = parseInt(document.getElementById('edit-raikicell-harga').value);
+    if (!nama || isNaN(fee) || isNaN(harga)) return alert('Isi semua kolom dengan benar.');
+
+    let data = JSON.parse(localStorage.getItem(KEY_EDIT_RAIKICELL) || '[]');
+    data.push({nama, fee, harga});
+    localStorage.setItem(KEY_EDIT_RAIKICELL, JSON.stringify(data));
+    clearInputs(['edit-raikicell-nama', 'edit-raikicell-fee', 'edit-raikicell-harga']);
+    updateTabelEditRaikicell();
+  }
+  function updateTabelEditRaikicell() {
+    const data = JSON.parse(localStorage.getItem(KEY_EDIT_RAIKICELL) || '[]');
+    const tbody = document.getElementById('tabel-edit-raikicell');
+    tbody.innerHTML = '';
+    data.forEach((item, i) => {
+      tbody.innerHTML += `<tr>
+        <td>${item.nama}</td>
+        <td>${item.fee}</td>
+        <td>${item.harga}</td>
+        <td><button onclick="hapusEditRaikicell(${i})" class="small">Hapus</button></td>
+      </tr>`;
+    });
+  }
+  function hapusEditRaikicell(idx) {
+    let data = JSON.parse(localStorage.getItem(KEY_EDIT_RAIKICELL) || '[]');
+    data.splice(idx, 1);
+    localStorage.setItem(KEY_EDIT_RAIKICELL, JSON.stringify(data));
+    updateTabelEditRaikicell();
+  }
+
+  // --- Pengeluaran ---
+  function tambahPengeluaran() {
+    const ket = document.getElementById('pengeluaran-ket').value.trim();
+    const jumlah = parseInt(document.getElementById('pengeluaran-jumlah').value);
+    if (!ket || isNaN(jumlah)) return alert('Isi semua kolom dengan benar.');
+
+    let data = JSON.parse(localStorage.getItem(KEY_PENGELUARAN) || '[]');
+    data.push({ket, jumlah});
+    localStorage.setItem(KEY_PENGELUARAN, JSON.stringify(data));
+    clearInputs(['pengeluaran-ket', 'pengeluaran-jumlah']);
+    updateTabelPengeluaran();
+    updateTotalUang();
+  }
+  function updateTabelPengeluaran() {
+    const data = JSON.parse(localStorage.getItem(KEY_PENGELUARAN) || '[]');
+    const tbody = document.getElementById('tabel-pengeluaran');
+    tbody.innerHTML = '';
+    data.forEach((item, i) => {
+      tbody.innerHTML += `<tr>
+        <td>${item.ket}</td>
+        <td>${item.jumlah}</td>
+        <td><button onclick="hapusPengeluaran(${i})" class="small">Hapus</button></td>
+      </tr>`;
+    });
+  }
+  function hapusPengeluaran(idx) {
+    let data = JSON.parse(localStorage.getItem(KEY_PENGELUARAN) || '[]');
+    data.splice(idx, 1);
+    localStorage.setItem(KEY_PENGELUARAN, JSON.stringify(data));
+    updateTabelPengeluaran();
+    updateTotalUang();
+  }
+
+  // --- Laporan ---
+  function updateLaporan() {
+    const tbody = document.getElementById('tabel-laporan');
+    tbody.innerHTML = '';
+
+    const konter = JSON.parse(localStorage.getItem(KEY_KONTER) || '[]');
+    const warung = JSON.parse(localStorage.getItem(KEY_WARUNG + '_transaksi') || '[]');
+    const manual = JSON.parse(localStorage.getItem(KEY_MANUAL) || '[]');
+    const raikinet = JSON.parse(localStorage.getItem(KEY_RAIKINET + '_transaksi') || '[]');
+    const pengeluaran = JSON.parse(localStorage.getItem(KEY_PENGELUARAN) || '[]');
+
+    let totalFee = 0;
+    let totalHarga = 0;
+    let totalPengeluaran = 0;
+
+    function addRows(data, jenis) {
+      data.forEach(item => {
+        tbody.innerHTML += `<tr>
+          <td>${jenis}</td>
+          <td>${item.nama || item.ket}</td>
+          <td>${item.jumlah || '-'}</td>
+          <td>${item.fee || 0}</td>
+          <td>${item.harga || 0}</td>
+        </tr>`;
+        totalFee += item.fee || 0;
+        totalHarga += item.harga || 0;
       });
+    }
+    addRows(konter, 'Konter');
+    addRows(warung, 'Warung');
+    addRows(manual, 'Manual');
+    addRows(raikinet, 'Raikinet');
+    pengeluaran.forEach(item => {
+      tbody.innerHTML += `<tr>
+        <td>Pengeluaran</td>
+        <td>${item.ket}</td>
+        <td>-</td>
+        <td>0</td>
+        <td>-${item.jumlah}</td>
+      </tr>`;
+      totalPengeluaran += item.jumlah;
     });
 
-    // Data arrays
-    let konterData = [];
-    let warungData = [];
-    let tarikTunaiData = [];
-    let pengeluaranData = [];
-    let adminBarangData = [];
+    document.getElementById('total-fee').textContent = totalFee.toLocaleString();
+    document.getElementById('total-harga-jual').textContent = totalHarga.toLocaleString();
+    document.getElementById('total-pengeluaran').textContent = totalPengeluaran.toLocaleString();
+    document.getElementById('saldo-bersih').textContent = (totalHarga - totalPengeluaran).toLocaleString();
+  }
 
-    // Load data from Firebase realtime DB
-    function loadData(path, callback) {
-      const dbRef = ref(db, path);
-      onValue(dbRef, snapshot => {
-        const data = snapshot.val();
-        callback(data ? Object.values(data) : []);
-      });
-    }
+  // --- Update total uang di bawah ---
+  function updateTotalUang() {
+    const konter = JSON.parse(localStorage.getItem(KEY_KONTER) || '[]');
+    const warung = JSON.parse(localStorage.getItem(KEY_WARUNG + '_transaksi') || '[]');
+    const manual = JSON.parse(localStorage.getItem(KEY_MANUAL) || '[]');
+    const raikinet = JSON.parse(localStorage.getItem(KEY_RAIKINET + '_transaksi') || '[]');
+    const pengeluaran = JSON.parse(localStorage.getItem(KEY_PENGELUARAN) || '[]');
 
-    // Save data to Firebase realtime DB
-    function saveData(path, data) {
-      push(ref(db, path), data);
-    }
+    let total = 0;
+    konter.forEach(item => total += item.harga);
+    warung.forEach(item => total += item.harga);
+    manual.forEach(item => total += item.harga);
+    raikinet.forEach(item => total += item.harga);
+    pengeluaran.forEach(item => total -= item.jumlah);
 
-    // Update tables
-    function updateTableKonter() {
-      const tbody = document.querySelector('#tableKonter tbody');
-      tbody.innerHTML = '';
-      konterData.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${item.nama}</td><td>${item.harga}</td><td>${item.fee}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-    function updateTableWarung() {
-      const tbody = document.querySelector('#tableWarung tbody');
-      tbody.innerHTML = '';
-      warungData.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${item.nama}</td><td>${item.harga}</td><td>${item.fee}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-    function updateTableTarikTunai() {
-      const tbody = document.querySelector('#tableTarikTunai tbody');
-      tbody.innerHTML = '';
-      tarikTunaiData.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${item.jumlah}</td><td>${item.fee}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-    function updateTablePengeluaran() {
-      const tbody = document.querySelector('#tablePengeluaran tbody');
-      tbody.innerHTML = '';
-      pengeluaranData.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${item.nama}</td><td>${item.jumlah}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-    function updateTableAdminBarang() {
-      const tbody = document.querySelector('#tableAdminBarang tbody');
-      tbody.innerHTML = '';
-      adminBarangData.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${item.nama}</td><td>${item.harga}</td><td>${item.fee}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
+    document.getElementById('total-uang').textContent = total.toLocaleString();
+  }
 
-    // Form submissions
-    document.getElementById('formKonter').addEventListener('submit', e => {
-      e.preventDefault();
-      const nama = document.getElementById('namaBarangKonter').value.trim();
-      const harga = parseFloat(document.getElementById('hargaKonter').value);
-      const fee = parseFloat(document.getElementById('feeKonter').value);
-      if (nama && !isNaN(harga) && !isNaN(fee)) {
-        const data = { nama, harga, fee, tanggal: formatDate() };
-        saveData('konter', data);
-        document.getElementById('formKonter').reset();
-      }
+  // --- Helper clear input ---
+  function clearInputs(ids) {
+    ids.forEach(id => {
+      document.getElementById(id).value = '';
     });
+  }
 
-    document.getElementById('formWarung').addEventListener('submit', e => {
-      e.preventDefault();
-      const nama = document.getElementById('namaBarangWarung').value.trim();
-      const harga = parseFloat(document.getElementById('hargaWarung').value);
-      const fee = parseFloat(document.getElementById('feeWarung').value);
-      if (nama && !isNaN(harga) && !isNaN(fee)) {
-        const data = { nama, harga, fee, tanggal: formatDate() };
-        saveData('warung', data);
-        document.getElementById('formWarung').reset();
-      }
-    });
+  // Init semua tabel dan dropdown saat load halaman
+  function updateAllTables() {
+    updateTabelKonter();
+    updateTabelWarung();
+    updateTabelManual();
+    updateTabelEditWarung();
+    updateTabelRaikinet();
+    updateTabelEditRaikicell();
+    updateTabelPengeluaran();
+    updateLaporan();
+    isiDropdownWarung();
+    isiDropdownRaikinet();
+  }
 
-    document.getElementById('formTarikTunai').addEventListener('submit', e => {
-      e.preventDefault();
-      const jumlah = parseFloat(document.getElementById('jumlahTarikTunai').value);
-      const fee = parseFloat(document.getElementById('feeTarikTunai').value);
-      if (!isNaN(jumlah) && !isNaN(fee)) {
-        const data = { jumlah, fee, tanggal: formatDate() };
-        saveData('tarikTunai', data);
-        document.getElementById('formTarikTunai').reset();
-      }
-    });
+  updateAllTables();
+  updateTotalUang();
 
-    document.getElementById('formPengeluaran').addEventListener('submit', e => {
-      e.preventDefault();
-      const nama = document.getElementById('namaPengeluaran').value.trim();
-      const jumlah = parseFloat(document.getElementById('jumlahPengeluaran').value);
-      if (nama && !isNaN(jumlah)) {
-        const data = { nama, jumlah, tanggal: formatDate() };
-        saveData('pengeluaran', data);
-        document.getElementById('formPengeluaran').reset();
-      }
-    });
-
-    document.getElementById('formAdminBarang').addEventListener('submit', e => {
-      e.preventDefault();
-      const nama = document.getElementById('namaBarangAdmin').value.trim();
-      const harga = parseFloat(document.getElementById('hargaAdmin').value);
-      const fee = parseFloat(document.getElementById('feeAdmin').value);
-      if (nama && !isNaN(harga) && !isNaN(fee)) {
-        const data = { nama, harga, fee, tanggal: formatDate() };
-        saveData('adminBarang', data);
-        document.getElementById('formAdminBarang').reset();
-      }
-    });
-
-    // Load all data initially and update tables
-    function refreshAllData() {
-      loadData('konter', data => {
-        konterData = data;
-        updateTableKonter();
-        updateLaporan();
-      });
-      loadData('warung', data => {
-        warungData = data;
-        updateTableWarung();
-        updateLaporan();
-      });
-      loadData('tarikTunai', data => {
-        tarikTunaiData = data;
-        updateTableTarikTunai();
-        updateLaporan();
-      });
-      loadData('pengeluaran', data => {
-        pengeluaranData = data;
-        updateTablePengeluaran();
-        updateLaporan();
-      });
-      loadData('adminBarang', data => {
-        adminBarangData = data;
-        updateTableAdminBarang();
-        updateLaporan();
-      });
-    }
-
-    refreshAllData();
-
-    // Calculate laporan (keuntungan dan total)
-    function updateLaporan() {
-      // Total harga jual = konter + warung + adminBarang - tarikTunai jumlah
-      const totalHargaJual =
-        konterData.reduce((a,b) => a + b.harga,0) +
-        warungData.reduce((a,b) => a + b.harga,0) +
-        adminBarangData.reduce((a,b) => a + b.harga,0) -
-        tarikTunaiData.reduce((a,b) => a + b.jumlah,0);
-
-      // Total fee = sum fee semua transaksi + fee tarik tunai
-      const totalFee =
-        konterData.reduce((a,b) => a + b.fee,0) +
-        warungData.reduce((a,b) => a + b.fee,0) +
-        adminBarangData.reduce((a,b) => a + b.fee,0) +
-        tarikTunaiData.reduce((a,b) => a + b.fee,0);
-
-      // Total pengeluaran
-      const totalPengeluaran = pengeluaranData.reduce((a,b) => a + b.jumlah,0);
-
-      // Keuntungan = (harga jual - fee) - pengeluaran
-      const keuntungan = (totalHargaJual - totalFee) - totalPengeluaran;
-
-      window.laporanSummary = {
-        totalHargaJual,
-        totalFee,
-        totalPengeluaran,
-        keuntungan
-      };
-    }
-
-    // Laporan harian
-    document.getElementById('btnLaporanHarian').addEventListener('click', () => {
-      const today = formatDate();
-      const laporan = generateLaporan('hari', today);
-      document.getElementById('laporanHarian').style.display = 'block';
-      document.getElementById('laporanBulanan').style.display = 'none';
-      document.getElementById('outputLaporanHarian').textContent = laporan;
-    });
-
-    // Laporan bulanan
-    document.getElementById('btnLaporanBulanan').addEventListener('click', () => {
-      const thisMonth = formatMonth();
-      const laporan = generateLaporan('bulan', thisMonth);
-      document.getElementById('laporanHarian').style.display = 'none';
-      document.getElementById('laporanBulanan').style.display = 'block';
-      document.getElementById('outputLaporanBulanan').textContent = laporan;
-    });
-
-    // Generate laporan string for day or month
-    function generateLaporan(type, dateStr) {
-      // filter function
-      function filterByDate(data) {
-        return data.filter(item => {
-          if(type === 'hari') {
-            return item.tanggal === dateStr;
-          } else if(type === 'bulan') {
-            return item.tanggal.startsWith(dateStr);
-          }
-          return false;
-        });
-      }
-
-      // Filter data
-      const konterF = filterByDate(konterData);
-      const warungF = filterByDate(warungData);
-      const tarikTunaiF = filterByDate(tarikTunaiData);
-      const pengeluaranF = filterByDate(pengeluaranData);
-      const adminBarangF = filterByDate(adminBarangData);
-
-      // Calculate
-      const totalHargaJual =
-        konterF.reduce((a,b) => a + b.harga,0) +
-        warungF.reduce((a,b) => a + b.harga,0) +
-        adminBarangF.reduce((a,b) => a + b.harga,0) -
-        tarikTunaiF.reduce((a,b) => a + b.jumlah,0);
-
-      const totalFee =
-        konterF.reduce((a,b) => a + b.fee,0) +
-        warungF.reduce((a,b) => a + b.fee,0) +
-        adminBarangF.reduce((a,b) => a + b.fee,0) +
-        tarikTunaiF.reduce((a,b) => a + b.fee,0);
-
-      const totalPengeluaran = pengeluaranF.reduce((a,b) => a + b.jumlah,0);
-
-      const keuntungan = (totalHargaJual - totalFee) - totalPengeluaran;
-
-      return `
-Laporan ${type === 'hari' ? 'Harian' : 'Bulanan'} untuk ${dateStr}:
-- Total Harga Jual: ${totalHargaJual}
-- Total Fee: ${totalFee}
-- Total Pengeluaran: ${totalPengeluaran}
-- Keuntungan Bersih: ${keuntungan}
-      `.trim();
-    }
-
-    // Tombol batal di semua form
-    const tombolBatal = document.querySelectorAll('.btnBatal');
-    tombolBatal.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const formId = btn.dataset.form;
-        document.getElementById(formId).reset();
-      });
-    });
-
-  </script>
+</script>
 
 </body>
 </html>
