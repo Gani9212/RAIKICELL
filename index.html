@@ -4,150 +4,181 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RNV Net</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     body {
-      background-color: #0f0f0f;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: #0e0e0e;
       color: #fff;
     }
-    .nav-link.active {
-      background-color: #6f42c1 !important;
-      color: white !important;
+    header {
+      background: #1c1c1e;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: #0ff;
+    }
+    nav button {
+      background: transparent;
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    nav button.active, nav button:hover {
+      background: #0ff;
+      color: #000;
       border-radius: 5px;
     }
     .tab-content {
-      margin-top: 30px;
+      display: none;
+      padding: 2rem;
     }
-    .tab-pane {
-      animation: fadeIn 0.3s ease-in-out;
+    .tab-content.active {
+      display: block;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #0ff, #00f);
     }
-    .hologram {
-      text-align: center;
-      font-size: 2.5rem;
+    .login-box {
+      background: #1c1c1e;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #0ff;
+    }
+    .login-box h2 {
+      margin-bottom: 1rem;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      border: none;
+      border-radius: 5px;
+    }
+    .login-box button {
+      width: 100%;
+      padding: 0.7rem;
+      border: none;
+      background: #0ff;
+      color: #000;
+      border-radius: 5px;
       font-weight: bold;
-      margin-top: 50px;
-      color: #6f42c1;
-      text-shadow: 0 0 5px #6f42c1, 0 0 15px #6f42c1;
     }
   </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
-    <a class="navbar-brand" href="#">RNV Net</a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="nav-link active" data-bs-toggle="tab" href="#dashboard">Dashboard</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" data-bs-toggle="tab" href="#voucher">Pelanggan Voucher</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" data-bs-toggle="tab" href="#pppoe">Pelanggan PPPoE</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" data-bs-toggle="tab" href="#pembayaran">Pembayaran</a>
-        </li>
-      </ul>
-    </div>
-  </nav>
 
-  <div class="container tab-content">
-    <div class="tab-pane fade show active" id="dashboard">
-      <div class="hologram">Selamat Datang di RNV Net</div>
-      <p class="text-center">Sistem pembukuan dan manajemen pelanggan WiFi RT/RW berbasis Firebase</p>
-    </div>
+<div id="loginPage" class="login-container">
+  <div class="login-box">
+    <h2>Login Admin</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+</div>
 
-    <div class="tab-pane fade" id="voucher">
-      <h3>Pelanggan Voucher</h3>
-      <form id="formVoucher">
-        <div class="mb-2">
-          <label class="form-label">Nama</label>
-          <input type="text" class="form-control" id="namaVoucher" required>
-        </div>
-        <div class="mb-2">
-          <label class="form-label">Nomor HP</label>
-          <input type="text" class="form-control" id="hpVoucher" required>
-        </div>
-        <div class="mb-2">
-          <label class="form-label">Tanggal Pasang</label>
-          <input type="date" class="form-control" id="tglVoucher" required>
-        </div>
-        <button type="submit" class="btn btn-success">Tambah</button>
-      </form>
-      <hr>
-      <div id="listVoucher"></div>
-    </div>
+<div id="mainContent" style="display:none">
+  <header>
+    <h1>RNV Net</h1>
+    <nav>
+      <button class="tab-link active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-link" data-tab="voucher">Pelanggan Voucher</button>
+      <button class="tab-link" data-tab="pppoe">Pelanggan PPPoE</button>
+      <button class="tab-link" data-tab="pembayaran">Pembayaran</button>
+    </nav>
+  </header>
 
-    <div class="tab-pane fade" id="pppoe">
-      <h3>Pelanggan PPPoE</h3>
-      <form id="formPPPoE">
-        <div class="mb-2">
-          <label class="form-label">Nama</label>
-          <input type="text" class="form-control" id="namaPPPoE" required>
-        </div>
-        <div class="mb-2">
-          <label class="form-label">Nomor HP</label>
-          <input type="text" class="form-control" id="hpPPPoE" required>
-        </div>
-        <div class="mb-2">
-          <label class="form-label">Tanggal Pasang</label>
-          <input type="date" class="form-control" id="tglPPPoE" required>
-        </div>
-        <button type="submit" class="btn btn-success">Tambah</button>
-      </form>
-      <hr>
-      <div id="listPPPoE"></div>
-    </div>
-
-    <div class="tab-pane fade" id="pembayaran">
-      <h3>Daftar Tagihan</h3>
-      <form id="formTagihan">
-        <div class="mb-2">
-          <label class="form-label">Nama Pelanggan</label>
-          <input type="text" class="form-control" id="namaTagihan" required>
-        </div>
-        <div class="mb-2">
-          <label class="form-label">Nominal Tagihan</label>
-          <input type="number" class="form-control" id="jumlahTagihan" required>
-        </div>
-        <div class="mb-2">
-          <label class="form-label">Bulan</label>
-          <input type="month" class="form-control" id="bulanTagihan" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Catat Tagihan</button>
-      </form>
-      <hr>
-      <div id="listTagihan"></div>
-    </div>
+  <div id="dashboard" class="tab-content active">
+    <h2>Selamat datang di RNV Net</h2>
+    <p>Tampilan futuristik dan data hologram akan ditampilkan di sini...</p>
   </div>
 
-  <!-- Firebase CDN -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+  <div id="voucher" class="tab-content">
+    <h2>Pelanggan Voucher</h2>
+    <form>
+      <input type="text" placeholder="Nama Pelanggan">
+      <input type="text" placeholder="Nomor HP">
+      <input type="date" placeholder="Tanggal Pasang">
+      <button type="submit">Simpan</button>
+    </form>
+  </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
-      authDomain: "raikicell.firebaseapp.com",
-      databaseURL: "https://raikicell-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "raikicell",
-      storageBucket: "raikicell.firebaseapp.com",
-      messagingSenderId: "648628376778",
-      appId: "1:648628376778:web:961ca9084abeeb206bd033",
-      measurementId: "G-JG8V2E41XR"
-    };
+  <div id="pppoe" class="tab-content">
+    <h2>Pelanggan PPPoE</h2>
+    <form>
+      <input type="text" placeholder="Nama Pelanggan">
+      <input type="text" placeholder="Nomor HP">
+      <input type="date" placeholder="Tanggal Pasang">
+      <button type="submit">Simpan</button>
+    </form>
+  </div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  <div id="pembayaran" class="tab-content">
+    <h2>Data Tagihan</h2>
+    <ul>
+      <li>Contoh Tagihan #1 - <button>Edit</button> <button>Hapus</button></li>
+      <li>Contoh Tagihan #2 - <button>Edit</button> <button>Hapus</button></li>
+    </ul>
+  </div>
+</div>
 
-    // Simpan dan tampil data untuk semua form nanti disini...
-  </script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
+    authDomain: "raikicell.firebaseapp.com",
+    databaseURL: "https://raikicell-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "raikicell",
+    storageBucket: "raikicell.firebasestorage.app",
+    messagingSenderId: "648628376778",
+    appId: "1:648628376778:web:961ca9084abeeb206bd033",
+    measurementId: "G-JG8V2E41XR"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+
+<script>
+  function login() {
+    const user = document.getElementById("username").value;
+    const pass = document.getElementById("password").value;
+    if (user === "Raikinet" && pass === "Cintawargi1909") {
+      document.getElementById("loginPage").style.display = "none";
+      document.getElementById("mainContent").style.display = "block";
+    } else {
+      alert("Login gagal");
+    }
+  }
+
+  const tabLinks = document.querySelectorAll('.tab-link');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabLinks.forEach(button => {
+    button.addEventListener('click', () => {
+      tabLinks.forEach(btn => btn.classList.remove('active'));
+      tabContents.forEach(tab => tab.classList.remove('active'));
+
+      button.classList.add('active');
+      document.getElementById(button.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+
 </body>
 </html>
