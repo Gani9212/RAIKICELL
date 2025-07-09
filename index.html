@@ -61,6 +61,75 @@
       background: #ff00cc;
     }
   </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
+      authDomain: "raikicell.firebaseapp.com",
+      databaseURL: "https://raikicell-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "raikicell",
+      storageBucket: "raikicell.firebasestorage.app",
+      messagingSenderId: "648628376778",
+      appId: "1:648628376778:web:70098faf30f123ed6bd033",
+      measurementId: "G-WWT1K74HHR"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.simpanPelanggan = () => {
+      const nama = document.getElementById('namaPelanggan').value;
+      const hp = document.getElementById('noHP').value;
+      const tipe = document.getElementById('tipeWiFi').value;
+      const tgl = document.getElementById('tglPasang').value;
+
+      const pelangganRef = ref(db, 'pelanggan');
+      const newRef = push(pelangganRef);
+      set(newRef, {
+        nama,
+        hp,
+        tipe,
+        tanggal: tgl
+      });
+    };
+
+    window.simpanTagihan = () => {
+      const nama = document.getElementById('namaTagihan').value;
+      const tagihan = document.getElementById('jumlahTagihan').value;
+
+      const tagihanRef = ref(db, 'tagihan');
+      const newRef = push(tagihanRef);
+      set(newRef, {
+        nama,
+        tagihan
+      });
+    };
+
+    const pelangganTable = document.querySelector('#tabelPelanggan tbody');
+    const tagihanTable = document.querySelector('#tabelTagihan tbody');
+
+    onValue(ref(db, 'pelanggan'), snapshot => {
+      pelangganTable.innerHTML = '';
+      snapshot.forEach(child => {
+        const data = child.val();
+        pelangganTable.innerHTML += `<tr><td>${data.nama}</td><td>${data.hp}</td><td>${data.tipe}</td><td>${data.tanggal}</td><td><button onclick="hapusData('pelanggan','${child.key}')">Hapus</button></td></tr>`;
+      });
+    });
+
+    onValue(ref(db, 'tagihan'), snapshot => {
+      tagihanTable.innerHTML = '';
+      snapshot.forEach(child => {
+        const data = child.val();
+        tagihanTable.innerHTML += `<tr><td>${data.nama}</td><td>${data.tagihan}</td><td><button onclick="hapusData('tagihan','${child.key}')">Hapus</button></td></tr>`;
+      });
+    });
+
+    window.hapusData = (jenis, id) => {
+      remove(ref(db, `${jenis}/${id}`));
+    };
+  </script>
 </head>
 <body>
   <header>
@@ -131,22 +200,6 @@
       document.querySelectorAll('.content-container').forEach(div => div.classList.remove('active'));
       document.getElementById(page).classList.add('active');
       document.getElementById('menuPage').classList.remove('active');
-    }
-
-    function simpanPelanggan() {
-      const nama = document.getElementById('namaPelanggan').value;
-      const hp = document.getElementById('noHP').value;
-      const tipe = document.getElementById('tipeWiFi').value;
-      const tgl = document.getElementById('tglPasang').value;
-      const row = `<tr><td>${nama}</td><td>${hp}</td><td>${tipe}</td><td>${tgl}</td><td><button onclick="this.closest('tr').remove()">Hapus</button></td></tr>`;
-      document.querySelector('#tabelPelanggan tbody').innerHTML += row;
-    }
-
-    function simpanTagihan() {
-      const nama = document.getElementById('namaTagihan').value;
-      const tagihan = document.getElementById('jumlahTagihan').value;
-      const row = `<tr><td>${nama}</td><td>${tagihan}</td><td><button onclick="this.closest('tr').remove()">Hapus</button></td></tr>`;
-      document.querySelector('#tabelTagihan tbody').innerHTML += row;
     }
   </script>
 </body>
