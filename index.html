@@ -2,14 +2,14 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RNV Net Admin</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
     body {
       margin: 0;
       font-family: 'Orbitron', sans-serif;
-      background: #1a1a2e;
+      background: radial-gradient(circle, #0f0c29, #302b63, #24243e);
       color: #fff;
     }
     header {
@@ -17,89 +17,77 @@
       padding: 1rem;
     }
     header img {
-      width: 150px;
+      width: 200px;
+      margin-bottom: 10px;
     }
-    nav {
-      background: #16213e;
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      padding: 1rem;
-      border-bottom: 2px solid #0f3460;
-    }
-    nav button {
-      background: #0f3460;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    nav button:hover {
-      background: #533483;
-    }
-    .container {
-      padding: 1rem;
+    .login-container, .menu-container, .content-container {
       display: none;
+      text-align: center;
+      padding: 2rem;
     }
-    .container.active {
+    .login-container.active, .menu-container.active, .content-container.active {
       display: block;
     }
     input, select, button {
-      margin: 0.3rem;
       padding: 0.5rem;
-      border-radius: 4px;
+      margin: 0.5rem;
       border: none;
+      border-radius: 5px;
       font-size: 1rem;
     }
     button {
-      background-color: #e94560;
+      background: #8e2de2;
       color: white;
       cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #4a00e0;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 1rem;
-      background: #0f3460;
+      background: #1e1e2f;
     }
     th, td {
+      border: 1px solid #4a00e0;
       padding: 0.5rem;
       text-align: center;
-      border: 1px solid #1a1a2e;
     }
-    .login-container {
-      text-align: center;
-      padding: 2rem;
+    .menu-button {
+      font-size: 1.2rem;
+      margin: 1rem;
+      background: #ff00cc;
     }
   </style>
 </head>
 <body>
-
   <header>
-    <img src="logo.png" alt="RNV Net Logo">
-    <h2>Admin RNV Net</h2>
+    <img src="WhatsApp Image 2025-07-09 at 21.05.20.jpeg" alt="RNV Net Logo">
   </header>
 
   <!-- Login -->
-  <div class="login-container" id="loginPage">
+  <div class="login-container active" id="loginPage">
+    <h2>Login Admin</h2>
     <input type="email" id="username" placeholder="Email"><br>
     <input type="password" id="password" placeholder="Password"><br>
     <button id="loginBtn">Login</button>
   </div>
 
-  <!-- Navigasi -->
-  <nav id="navBar" style="display:none;">
-    <button onclick="showTab('pelanggan')">Data Pelanggan</button>
-    <button onclick="showTab('tagihan')">List Tagihan</button>
-    <button onclick="logout()">Logout</button>
-  </nav>
+  <!-- Menu Utama -->
+  <div class="menu-container" id="menuPage">
+    <h2>Selamat Datang di RNV Net</h2>
+    <button onclick="logout()" style="position: fixed; top: 10px; right: 10px;">Logout</button>
+    <button class="menu-button" onclick="showPage('pelanggan')">📡 Data Pelanggan</button>
+    <button class="menu-button" onclick="showPage('tagihan')">💸 List Tagihan</button>
+  </div>
 
   <!-- Data Pelanggan -->
-  <div class="container" id="pelanggan">
-    <h3>Data Pelanggan</h3>
-    <input type="text" id="namaPelanggan" placeholder="Nama">
-    <input type="text" id="noHP" placeholder="No HP">
+  <div class="content-container" id="pelanggan">
+    <h2>Data Pelanggan</h2>
+    <input type="text" id="namaPelanggan" placeholder="Nama Pelanggan">
+    <input type="text" id="noHP" placeholder="No HP / WhatsApp">
     <select id="tipeWiFi">
       <option value="PPPoE">PPPoE</option>
       <option value="Voucher">Voucher</option>
@@ -115,10 +103,10 @@
   </div>
 
   <!-- List Tagihan -->
-  <div class="container" id="tagihan">
-    <h3>List Tagihan</h3>
+  <div class="content-container" id="tagihan">
+    <h2>List Tagihan</h2>
     <input type="text" id="namaTagihan" placeholder="Nama Pelanggan">
-    <input type="text" id="jumlahTagihan" placeholder="Jumlah">
+    <input type="text" id="jumlahTagihan" placeholder="Jumlah Tagihan">
     <button onclick="simpanTagihan()">Simpan</button>
     <table id="tabelTagihan">
       <thead>
@@ -128,7 +116,7 @@
     </table>
   </div>
 
-  <!-- Firebase & Script -->
+  <!-- Firebase Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
@@ -139,9 +127,10 @@
       authDomain: "raikicell.firebaseapp.com",
       databaseURL: "https://raikicell-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "raikicell",
-      storageBucket: "raikicell.appspot.com",
+      storageBucket: "raikicell.firebasestorage.app",
       messagingSenderId: "648628376778",
-      appId: "1:648628376778:web:70098faf30f123ed6bd033"
+      appId: "1:648628376778:web:70098faf30f123ed6bd033",
+      measurementId: "G-WWT1K74HHR"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -151,23 +140,27 @@
     const pelangganRef = ref(db, 'pelanggan');
     const tagihanRef = ref(db, 'tagihan');
 
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      const email = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
-      signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          document.getElementById("loginPage").style.display = "none";
-          document.getElementById("navBar").style.display = "flex";
-          showTab('pelanggan');
-        })
-        .catch((error) => alert("Login gagal: " + error.message));
-    });
+    const loginBtn = document.getElementById("loginBtn");
+    if (loginBtn) {
+      loginBtn.addEventListener("click", () => {
+        const email = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        signInWithEmailAndPassword(auth, email, password)
+          .then(() => {
+            document.getElementById("loginPage").classList.remove("active");
+            document.getElementById("menuPage").classList.add("active");
+          })
+          .catch((error) => {
+            alert("Login gagal: " + error.message);
+          });
+      });
+    }
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        document.getElementById("loginPage").style.display = "none";
-        document.getElementById("navBar").style.display = "flex";
-        showTab('pelanggan');
+        document.getElementById("loginPage").classList.remove("active");
+        document.getElementById("menuPage").classList.add("active");
         loadPelanggan();
         loadTagihan();
       }
@@ -175,15 +168,15 @@
 
     window.logout = () => {
       signOut(auth).then(() => {
-        document.getElementById("navBar").style.display = "none";
-        document.querySelectorAll(".container").forEach(c => c.classList.remove("active"));
-        document.getElementById("loginPage").style.display = "block";
+        document.getElementById("menuPage").classList.remove("active");
+        document.getElementById("loginPage").classList.add("active");
       });
-    }
+    };
 
-    window.showTab = function(id) {
-      document.querySelectorAll(".container").forEach(c => c.classList.remove("active"));
-      document.getElementById(id).classList.add("active");
+    window.showPage = function (page) {
+      document.querySelectorAll('.content-container').forEach(div => div.classList.remove('active'));
+      document.getElementById(page).classList.add('active');
+      document.getElementById('menuPage').classList.remove('active');
     }
 
     window.simpanPelanggan = function () {
