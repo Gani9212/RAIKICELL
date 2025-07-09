@@ -61,75 +61,6 @@
       background: #ff00cc;
     }
   </style>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
-      authDomain: "raikicell.firebaseapp.com",
-      databaseURL: "https://raikicell-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "raikicell",
-      storageBucket: "raikicell.firebasestorage.app",
-      messagingSenderId: "648628376778",
-      appId: "1:648628376778:web:70098faf30f123ed6bd033",
-      measurementId: "G-WWT1K74HHR"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    window.simpanPelanggan = () => {
-      const nama = document.getElementById('namaPelanggan').value;
-      const hp = document.getElementById('noHP').value;
-      const tipe = document.getElementById('tipeWiFi').value;
-      const tgl = document.getElementById('tglPasang').value;
-
-      const pelangganRef = ref(db, 'pelanggan');
-      const newRef = push(pelangganRef);
-      set(newRef, {
-        nama,
-        hp,
-        tipe,
-        tanggal: tgl
-      });
-    };
-
-    window.simpanTagihan = () => {
-      const nama = document.getElementById('namaTagihan').value;
-      const tagihan = document.getElementById('jumlahTagihan').value;
-
-      const tagihanRef = ref(db, 'tagihan');
-      const newRef = push(tagihanRef);
-      set(newRef, {
-        nama,
-        tagihan
-      });
-    };
-
-    const pelangganTable = document.querySelector('#tabelPelanggan tbody');
-    const tagihanTable = document.querySelector('#tabelTagihan tbody');
-
-    onValue(ref(db, 'pelanggan'), snapshot => {
-      pelangganTable.innerHTML = '';
-      snapshot.forEach(child => {
-        const data = child.val();
-        pelangganTable.innerHTML += `<tr><td>${data.nama}</td><td>${data.hp}</td><td>${data.tipe}</td><td>${data.tanggal}</td><td><button onclick="hapusData('pelanggan','${child.key}')">Hapus</button></td></tr>`;
-      });
-    });
-
-    onValue(ref(db, 'tagihan'), snapshot => {
-      tagihanTable.innerHTML = '';
-      snapshot.forEach(child => {
-        const data = child.val();
-        tagihanTable.innerHTML += `<tr><td>${data.nama}</td><td>${data.tagihan}</td><td><button onclick="hapusData('tagihan','${child.key}')">Hapus</button></td></tr>`;
-      });
-    });
-
-    window.hapusData = (jenis, id) => {
-      remove(ref(db, `${jenis}/${id}`));
-    };
-  </script>
 </head>
 <body>
   <header>
@@ -139,14 +70,15 @@
   <!-- Login -->
   <div class="login-container active" id="loginPage">
     <h2>Login Admin</h2>
-    <input type="text" id="username" placeholder="Username"><br>
+    <input type="email" id="username" placeholder="Email"><br>
     <input type="password" id="password" placeholder="Password"><br>
-    <button onclick="login()">Login</button>
+    <button id="loginBtn">Login</button>
   </div>
 
   <!-- Menu Utama -->
   <div class="menu-container" id="menuPage">
     <h2>Selamat Datang di RNV Net</h2>
+    <button onclick="logout()" style="position: fixed; top: 10px; right: 10px;">Logout</button>
     <button class="menu-button" onclick="showPage('pelanggan')">📡 Data Pelanggan</button>
     <button class="menu-button" onclick="showPage('tagihan')">💸 List Tagihan</button>
   </div>
@@ -184,22 +116,116 @@
     </table>
   </div>
 
-  <script>
-    function login() {
-      const user = document.getElementById('username').value;
-      const pass = document.getElementById('password').value;
-      if(user === 'Raikinet' && pass === 'Cintawargi') {
-        document.getElementById('loginPage').classList.remove('active');
-        document.getElementById('menuPage').classList.add('active');
-      } else {
-        alert('Login gagal!');
-      }
+  <!-- Firebase Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
+      authDomain: "raikicell.firebaseapp.com",
+      databaseURL: "https://raikicell-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "raikicell",
+      storageBucket: "raikicell.firebasestorage.app",
+      messagingSenderId: "648628376778",
+      appId: "1:648628376778:web:70098faf30f123ed6bd033",
+      measurementId: "G-WWT1K74HHR"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    const pelangganRef = ref(db, 'pelanggan');
+    const tagihanRef = ref(db, 'tagihan');
+
+    const loginBtn = document.getElementById("loginBtn");
+    if (loginBtn) {
+      loginBtn.addEventListener("click", () => {
+        const email = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        signInWithEmailAndPassword(auth, email, password)
+          .then(() => {
+            document.getElementById("loginPage").classList.remove("active");
+            document.getElementById("menuPage").classList.add("active");
+          })
+          .catch((error) => {
+            alert("Login gagal: " + error.message);
+          });
+      });
     }
 
-    function showPage(page) {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("loginPage").classList.remove("active");
+        document.getElementById("menuPage").classList.add("active");
+        loadPelanggan();
+        loadTagihan();
+      }
+    });
+
+    window.logout = () => {
+      signOut(auth).then(() => {
+        document.getElementById("menuPage").classList.remove("active");
+        document.getElementById("loginPage").classList.add("active");
+      });
+    };
+
+    window.showPage = function (page) {
       document.querySelectorAll('.content-container').forEach(div => div.classList.remove('active'));
       document.getElementById(page).classList.add('active');
       document.getElementById('menuPage').classList.remove('active');
+    }
+
+    window.simpanPelanggan = function () {
+      const data = {
+        nama: document.getElementById('namaPelanggan').value,
+        nohp: document.getElementById('noHP').value,
+        tipe: document.getElementById('tipeWiFi').value,
+        tanggal: document.getElementById('tglPasang').value
+      };
+      push(pelangganRef, data);
+    }
+
+    function loadPelanggan() {
+      onValue(pelangganRef, snapshot => {
+        const tbody = document.querySelector('#tabelPelanggan tbody');
+        tbody.innerHTML = '';
+        snapshot.forEach(child => {
+          const data = child.val();
+          const row = `<tr><td>${data.nama}</td><td>${data.nohp}</td><td>${data.tipe}</td><td>${data.tanggal}</td>
+            <td><button onclick="hapusData('${child.key}', 'pelanggan')">Hapus</button></td></tr>`;
+          tbody.innerHTML += row;
+        });
+      });
+    }
+
+    window.simpanTagihan = function () {
+      const data = {
+        nama: document.getElementById('namaTagihan').value,
+        tagihan: document.getElementById('jumlahTagihan').value
+      };
+      push(tagihanRef, data);
+    }
+
+    function loadTagihan() {
+      onValue(tagihanRef, snapshot => {
+        const tbody = document.querySelector('#tabelTagihan tbody');
+        tbody.innerHTML = '';
+        snapshot.forEach(child => {
+          const data = child.val();
+          const row = `<tr><td>${data.nama}</td><td>${data.tagihan}</td>
+            <td><button onclick="hapusData('${child.key}', 'tagihan')">Hapus</button></td></tr>`;
+          tbody.innerHTML += row;
+        });
+      });
+    }
+
+    window.hapusData = function (id, jenis) {
+      const delRef = ref(db, `${jenis}/${id}`);
+      remove(delRef);
     }
   </script>
 </body>
