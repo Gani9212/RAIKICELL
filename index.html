@@ -4,8 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RNV Net</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@3.8.1/dist/full.css">
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@3.8.1/dist/full.css" rel="stylesheet" type="text/css" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .nav-active {
+      background-color: #3b82f6;
+      color: white !important;
+    }
+    .hidden-section {
+      display: none;
+    }
+  </style>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
     import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
@@ -24,7 +34,22 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Simulasi login
+    document.addEventListener("DOMContentLoaded", () => {
+      const sections = ["dashboard", "voucher", "pppoe", "pembayaran"];
+      sections.forEach(id => document.getElementById(id).classList.add("hidden-section"));
+      document.getElementById("dashboard").classList.remove("hidden-section");
+
+      document.querySelectorAll(".tab-link").forEach(tab => {
+        tab.addEventListener("click", () => {
+          const target = tab.dataset.target;
+          sections.forEach(id => document.getElementById(id).classList.add("hidden-section"));
+          document.getElementById(target).classList.remove("hidden-section");
+          document.querySelectorAll(".tab-link").forEach(t => t.classList.remove("nav-active"));
+          tab.classList.add("nav-active");
+        });
+      });
+    });
+
     document.getElementById("loginForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const user = document.getElementById("username").value;
@@ -38,7 +63,6 @@
       }
     });
 
-    // Fungsi load semua data (pelanggan dan tagihan)
     async function loadAllData() {
       await loadPelanggan("voucher", "listVoucher");
       await loadPelanggan("pppoe", "listPPPoE");
@@ -53,16 +77,18 @@
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
         const div = document.createElement("div");
-        div.className = "p-2 border rounded flex justify-between items-center mb-2 bg-base-200";
+        div.className = "card bg-base-200 p-4 mb-2 shadow-md";
         div.innerHTML = `
-          <div>
-            <strong>${data.nama}</strong><br>
-            No HP: ${data.hp}<br>
-            Tgl Pasang: ${data.tanggal}
-          </div>
-          <div class="flex gap-2">
-            <button onclick="editPelanggan('${tipe}', '${docSnap.id}', '${data.nama}', '${data.hp}', '${data.tanggal}')" class="btn btn-sm btn-warning">Edit</button>
-            <button onclick="hapusPelanggan('${tipe}', '${docSnap.id}')" class="btn btn-sm btn-error">Hapus</button>
+          <div class="flex justify-between items-center">
+            <div>
+              <strong>${data.nama}</strong><br>
+              No HP: ${data.hp}<br>
+              Tanggal Pasang: ${data.tanggal}
+            </div>
+            <div class="flex gap-2">
+              <button onclick="editPelanggan('${tipe}', '${docSnap.id}', '${data.nama}', '${data.hp}', '${data.tanggal}')" class="btn btn-sm btn-warning">Edit</button>
+              <button onclick="hapusPelanggan('${tipe}', '${docSnap.id}')" class="btn btn-sm btn-error">Hapus</button>
+            </div>
           </div>`;
         list.appendChild(div);
       });
@@ -73,12 +99,12 @@
       loadAllData();
     }
 
-    window.editPelanggan = (tipe, id, nama, hp, tanggal) => {
+    window.editPelanggan = async (tipe, id, nama, hp, tanggal) => {
       const namaBaru = prompt("Nama:", nama);
       const hpBaru = prompt("Nomor HP:", hp);
       const tanggalBaru = prompt("Tanggal Pasang:", tanggal);
       if (namaBaru && hpBaru && tanggalBaru) {
-        updateDoc(doc(db, `pelanggan_${tipe}`, id), { nama: namaBaru, hp: hpBaru, tanggal: tanggalBaru });
+        await updateDoc(doc(db, `pelanggan_${tipe}`, id), { nama: namaBaru, hp: hpBaru, tanggal: tanggalBaru });
         loadAllData();
       }
     }
@@ -111,12 +137,13 @@
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
         const div = document.createElement("div");
-        div.className = "p-2 border rounded mb-2 bg-base-200";
+        div.className = "card bg-base-200 p-4 mb-2 shadow-md";
         div.innerHTML = `
           <div class="flex justify-between">
             <div>
               <strong>${data.nama}</strong><br>
-              Tagihan: ${data.jumlah} | Bulan: ${data.bulan}
+              Tagihan: ${data.jumlah}<br>
+              Bulan: ${data.bulan}
             </div>
             <div class="flex gap-2">
               <button onclick="editTagihan('${docSnap.id}', '${data.nama}', '${data.jumlah}', '${data.bulan}')" class="btn btn-sm btn-warning">Edit</button>
@@ -127,12 +154,12 @@
       });
     }
 
-    window.editTagihan = (id, nama, jumlah, bulan) => {
+    window.editTagihan = async (id, nama, jumlah, bulan) => {
       const namaBaru = prompt("Nama:", nama);
-      const jumlahBaru = prompt("Jumlah:", jumlah);
+      const jumlahBaru = prompt("Jumlah Tagihan:", jumlah);
       const bulanBaru = prompt("Bulan:", bulan);
       if (namaBaru && jumlahBaru && bulanBaru) {
-        updateDoc(doc(db, "tagihan", id), { nama: namaBaru, jumlah: jumlahBaru, bulan: bulanBaru });
+        await updateDoc(doc(db, "tagihan", id), { nama: namaBaru, jumlah: jumlahBaru, bulan: bulanBaru });
         loadAllData();
       }
     }
@@ -153,9 +180,9 @@
     });
   </script>
 </head>
-<body class="bg-base-100 text-base-content">
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 text-white">
   <section id="loginSection" class="min-h-screen flex items-center justify-center">
-    <form id="loginForm" class="p-6 bg-base-200 rounded shadow-md w-96">
+    <form id="loginForm" class="p-6 bg-gray-700 rounded shadow-md w-96">
       <h2 class="text-xl font-bold mb-4 text-center">Login Admin RNV Net</h2>
       <input id="username" placeholder="Username" class="input input-bordered w-full mb-2" required>
       <input id="password" type="password" placeholder="Password" class="input input-bordered w-full mb-4" required>
@@ -164,17 +191,17 @@
   </section>
 
   <main id="mainApp" class="hidden">
-    <div class="tabs tabs-boxed flex justify-center py-4">
-      <a href="#dashboard" class="tab tab-active">Dashboard</a>
-      <a href="#voucher" class="tab">Pelanggan Voucher</a>
-      <a href="#pppoe" class="tab">Pelanggan PPPoE</a>
-      <a href="#pembayaran" class="tab">Pembayaran</a>
+    <div class="flex justify-center bg-gray-800 p-4 gap-4">
+      <button class="tab-link btn btn-outline" data-target="dashboard">Dashboard</button>
+      <button class="tab-link btn btn-outline" data-target="voucher">Pelanggan Voucher</button>
+      <button class="tab-link btn btn-outline" data-target="pppoe">Pelanggan PPPoE</button>
+      <button class="tab-link btn btn-outline" data-target="pembayaran">Pembayaran</button>
     </div>
 
-    <section id="dashboard" class="p-4">
+    <section id="dashboard" class="p-6">
       <div class="text-center">
-        <h1 class="text-4xl font-bold mb-4">Selamat Datang di RNV Net</h1>
-        <div class="mockup-code bg-primary text-primary-content text-left">
+        <h1 class="text-4xl font-extrabold mb-4 text-blue-400">RNV Net Dashboard</h1>
+        <div class="mockup-code bg-primary text-primary-content">
           <pre data-prefix="$"><code>📡 Internet Berkualitas untuk Warga</code></pre>
           <pre data-prefix=">" class="text-success"><code>🚀 Stabil, Cepat, dan Terjangkau</code></pre>
           <pre data-prefix="✔"><code>💡 Laporan dan Manajemen Otomatis</code></pre>
@@ -182,9 +209,9 @@
       </div>
     </section>
 
-    <section id="voucher" class="p-4">
-      <h2 class="text-xl font-bold mb-2">Pelanggan Voucher</h2>
-      <form id="formVoucher" class="flex flex-col gap-2 mb-4">
+    <section id="voucher" class="p-6">
+      <h2 class="text-xl font-bold mb-4">Pelanggan Voucher</h2>
+      <form id="formVoucher" class="flex flex-col gap-3 mb-4">
         <input name="nama" placeholder="Nama" class="input input-bordered" required>
         <input name="hp" placeholder="Nomor HP" class="input input-bordered" required>
         <input name="tanggal" type="date" class="input input-bordered" required>
@@ -193,9 +220,9 @@
       <div id="listVoucher"></div>
     </section>
 
-    <section id="pppoe" class="p-4">
-      <h2 class="text-xl font-bold mb-2">Pelanggan PPPoE</h2>
-      <form id="formPPPoE" class="flex flex-col gap-2 mb-4">
+    <section id="pppoe" class="p-6">
+      <h2 class="text-xl font-bold mb-4">Pelanggan PPPoE</h2>
+      <form id="formPPPoE" class="flex flex-col gap-3 mb-4">
         <input name="nama" placeholder="Nama" class="input input-bordered" required>
         <input name="hp" placeholder="Nomor HP" class="input input-bordered" required>
         <input name="tanggal" type="date" class="input input-bordered" required>
@@ -204,9 +231,9 @@
       <div id="listPPPoE"></div>
     </section>
 
-    <section id="pembayaran" class="p-4">
-      <h2 class="text-xl font-bold mb-2">Daftar Tagihan</h2>
-      <form id="formTagihan" class="flex flex-col gap-2 mb-4">
+    <section id="pembayaran" class="p-6">
+      <h2 class="text-xl font-bold mb-4">Daftar Tagihan</h2>
+      <form id="formTagihan" class="flex flex-col gap-3 mb-4">
         <input name="nama" placeholder="Nama Pelanggan" class="input input-bordered" required>
         <input name="jumlah" placeholder="Jumlah Tagihan" class="input input-bordered" required>
         <input name="bulan" placeholder="Bulan" class="input input-bordered" required>
