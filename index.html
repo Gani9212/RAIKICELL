@@ -1,214 +1,153 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RNV Net - Dashboard</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
-      authDomain: "raikicell.firebaseapp.com",
-      databaseURL: "https://raikicell-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "raikicell",
-      storageBucket: "raikicell.firebasestorage.app",
-      messagingSenderId: "648628376778",
-      appId: "1:648628376778:web:70098faf30f123ed6bd033",
-      measurementId: "G-WWT1K74HHR"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const pelangganForm = document.getElementById("pelanggan-form");
-      const pelangganTableBody = document.getElementById("pelanggan-table-body");
-      const tagihanForm = document.getElementById("tagihan-form");
-      const tagihanTableBody = document.getElementById("tagihan-table-body");
-
-      function showSection(section) {
-        document.getElementById("section-pelanggan").classList.add("hidden");
-        document.getElementById("section-tagihan").classList.add("hidden");
-        document.getElementById(section).classList.remove("hidden");
-      }
-
-      document.getElementById("btn-pelanggan").addEventListener("click", () => showSection("section-pelanggan"));
-      document.getElementById("btn-tagihan").addEventListener("click", () => showSection("section-tagihan"));
-
-      async function loadPelanggan() {
-        pelangganTableBody.innerHTML = "";
-        const snapshot = await getDocs(collection(db, "pelanggan"));
-        snapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          const row = document.createElement("tr");
-          row.className = "hover:bg-purple-900/30 transition";
-          row.innerHTML = `
-            <td class='p-2'>${data.nama}</td>
-            <td class='p-2'>${data.nohp}</td>
-            <td class='p-2'>${data.tipe}</td>
-            <td class='p-2'>${data.tanggal}</td>
-            <td class='p-2 text-right'>
-              <button class="edit-btn text-yellow-400 mr-2" data-id="${docSnap.id}">Edit</button>
-              <button class="delete-btn text-red-500" data-id="${docSnap.id}">Hapus</button>
-            </td>
-          `;
-          pelangganTableBody.appendChild(row);
-        });
-      }
-
-      pelangganForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const id = pelangganForm.dataset.editId;
-        const data = {
-          nama: pelangganForm.nama.value,
-          nohp: pelangganForm.nohp.value,
-          tipe: pelangganForm.tipe.value,
-          tanggal: pelangganForm.tanggal.value
-        };
-
-        if (id) {
-          await updateDoc(doc(db, "pelanggan", id), data);
-          pelangganForm.removeAttribute("data-edit-id");
-        } else {
-          await addDoc(collection(db, "pelanggan"), data);
-        }
-        pelangganForm.reset();
-        loadPelanggan();
-      });
-
-      pelangganTableBody.addEventListener("click", async (e) => {
-        if (e.target.classList.contains("delete-btn")) {
-          const id = e.target.dataset.id;
-          await deleteDoc(doc(db, "pelanggan", id));
-          loadPelanggan();
-        }
-
-        if (e.target.classList.contains("edit-btn")) {
-          const id = e.target.dataset.id;
-          const snapshot = await getDocs(collection(db, "pelanggan"));
-          snapshot.forEach((docSnap) => {
-            if (docSnap.id === id) {
-              const data = docSnap.data();
-              pelangganForm.nama.value = data.nama;
-              pelangganForm.nohp.value = data.nohp;
-              pelangganForm.tipe.value = data.tipe;
-              pelangganForm.tanggal.value = data.tanggal;
-              pelangganForm.dataset.editId = id;
-            }
-          });
-        }
-      });
-
-      async function loadTagihan() {
-        tagihanTableBody.innerHTML = "";
-        const snapshot = await getDocs(collection(db, "tagihan"));
-        snapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td class='p-2'>${data.nama}</td>
-            <td class='p-2'>${data.jumlah}</td>
-          `;
-          tagihanTableBody.appendChild(row);
-        });
-      }
-
-      tagihanForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        await addDoc(collection(db, "tagihan"), {
-          nama: tagihanForm.nama.value,
-          jumlah: tagihanForm.jumlah.value
-        });
-        tagihanForm.reset();
-        loadTagihan();
-      });
-
-      loadPelanggan();
-      loadTagihan();
-    });
-  </script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            cyber: '#0ff',
-            background: '#0d0d0d',
-            accent: '#ff00ff'
-          },
-          fontFamily: {
-            cyber: ['"Orbitron"', 'sans-serif']
-          }
-        }
-      }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RNV Net Admin</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: radial-gradient(circle, #0f0c29, #302b63, #24243e);
+      color: #fff;
     }
-  </script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    header {
+      text-align: center;
+      padding: 1rem;
+    }
+    header img {
+      width: 200px;
+      margin-bottom: 10px;
+    }
+    .login-container, .menu-container, .content-container {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+    }
+    .login-container.active, .menu-container.active, .content-container.active {
+      display: block;
+    }
+    input, select, button {
+      padding: 0.5rem;
+      margin: 0.5rem;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    button {
+      background: #8e2de2;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #4a00e0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      background: #1e1e2f;
+    }
+    th, td {
+      border: 1px solid #4a00e0;
+      padding: 0.5rem;
+      text-align: center;
+    }
+    .menu-button {
+      font-size: 1.2rem;
+      margin: 1rem;
+      background: #ff00cc;
+    }
+  </style>
 </head>
-<body class="bg-background text-cyber font-cyber min-h-screen">
-  <header class="flex justify-between items-center p-4 bg-gradient-to-r from-cyber to-accent">
-    <img src="/mnt/data/WhatsApp Image 2025-07-09 at 21.05.20.jpeg" alt="RNV Logo" class="h-12 rounded" />
-    <h1 class="text-3xl font-bold">RNV Net Dashboard</h1>
+<body>
+  <header>
+    <img src="/mnt/data/WhatsApp Image 2025-07-09 at 21.05.20.jpeg" alt="RNV Net Logo">
   </header>
 
-  <main class="p-6 max-w-6xl mx-auto">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-      <button id="btn-pelanggan" class="bg-cyber text-black py-4 rounded-lg font-bold text-xl hover:bg-white transition">📡 Data Pelanggan</button>
-      <button id="btn-tagihan" class="bg-accent text-black py-4 rounded-lg font-bold text-xl hover:bg-white transition">💸 List Tagihan</button>
-    </div>
+  <!-- Login -->
+  <div class="login-container active" id="loginPage">
+    <h2>Login Admin</h2>
+    <input type="text" id="username" placeholder="Username"><br>
+    <input type="password" id="password" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
+  </div>
 
-    <!-- Data Pelanggan Section -->
-    <section id="section-pelanggan" class="hidden">
-      <h2 class="text-2xl text-accent font-semibold mb-4">📡 Data Pelanggan</h2>
-      <form id="pelanggan-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/30 p-6 rounded-xl border border-cyber">
-        <input type="text" name="nama" placeholder="Nama Pelanggan" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
-        <input type="text" name="nohp" placeholder="No HP / WhatsApp" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
-        <select name="tipe" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
-          <option value="PPPoE">PPPoE</option>
-          <option value="Voucher">Voucher</option>
-        </select>
-        <input type="date" name="tanggal" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
-        <button type="submit" class="col-span-full bg-cyber text-black py-3 rounded font-bold hover:bg-white transition">💾 Simpan Data</button>
-      </form>
-      <div class="overflow-x-auto mt-6">
-        <table class="min-w-full text-sm bg-black/40 border border-cyber rounded-xl">
-          <thead class="bg-cyber text-black">
-            <tr>
-              <th class="p-3 text-left">Nama</th>
-              <th class="p-3 text-left">No HP</th>
-              <th class="p-3 text-left">Tipe</th>
-              <th class="p-3 text-left">Tanggal</th>
-              <th class="p-3 text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="pelanggan-table-body"></tbody>
-        </table>
-      </div>
-    </section>
+  <!-- Menu Utama -->
+  <div class="menu-container" id="menuPage">
+    <h2>Selamat Datang di RNV Net</h2>
+    <button class="menu-button" onclick="showPage('pelanggan')">📡 Data Pelanggan</button>
+    <button class="menu-button" onclick="showPage('tagihan')">💸 List Tagihan</button>
+  </div>
 
-    <!-- List Tagihan Section -->
-    <section id="section-tagihan" class="hidden">
-      <h2 class="text-2xl text-accent font-semibold mb-4">💸 List Tagihan</h2>
-      <form id="tagihan-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/30 p-6 rounded-xl border border-cyber">
-        <input type="text" name="nama" placeholder="Nama Pelanggan" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
-        <input type="text" name="jumlah" placeholder="Nominal Tagihan" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
-        <button type="submit" class="col-span-full bg-accent text-black py-3 rounded font-bold hover:bg-white transition">💾 Tambah Tagihan</button>
-      </form>
-      <div class="overflow-x-auto mt-6">
-        <table class="min-w-full text-sm bg-black/40 border border-cyber rounded-xl">
-          <thead class="bg-accent text-black">
-            <tr>
-              <th class="p-3 text-left">Nama</th>
-              <th class="p-3 text-left">Tagihan</th>
-            </tr>
-          </thead>
-          <tbody id="tagihan-table-body"></tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+  <!-- Data Pelanggan -->
+  <div class="content-container" id="pelanggan">
+    <h2>Data Pelanggan</h2>
+    <input type="text" id="namaPelanggan" placeholder="Nama Pelanggan">
+    <input type="text" id="noHP" placeholder="No HP / WhatsApp">
+    <select id="tipeWiFi">
+      <option value="PPPoE">PPPoE</option>
+      <option value="Voucher">Voucher</option>
+    </select>
+    <input type="date" id="tglPasang">
+    <button onclick="simpanPelanggan()">Simpan</button>
+    <table id="tabelPelanggan">
+      <thead>
+        <tr><th>Nama</th><th>No HP</th><th>Tipe</th><th>Tanggal</th><th>Aksi</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- List Tagihan -->
+  <div class="content-container" id="tagihan">
+    <h2>List Tagihan</h2>
+    <input type="text" id="namaTagihan" placeholder="Nama Pelanggan">
+    <input type="text" id="jumlahTagihan" placeholder="Jumlah Tagihan">
+    <button onclick="simpanTagihan()">Simpan</button>
+    <table id="tabelTagihan">
+      <thead>
+        <tr><th>Nama</th><th>Tagihan</th><th>Aksi</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    function login() {
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      if(user === 'Raikinet' && pass === 'Cintawargi') {
+        document.getElementById('loginPage').classList.remove('active');
+        document.getElementById('menuPage').classList.add('active');
+      } else {
+        alert('Login gagal!');
+      }
+    }
+
+    function showPage(page) {
+      document.querySelectorAll('.content-container').forEach(div => div.classList.remove('active'));
+      document.getElementById(page).classList.add('active');
+      document.getElementById('menuPage').classList.remove('active');
+    }
+
+    function simpanPelanggan() {
+      const nama = document.getElementById('namaPelanggan').value;
+      const hp = document.getElementById('noHP').value;
+      const tipe = document.getElementById('tipeWiFi').value;
+      const tgl = document.getElementById('tglPasang').value;
+      const row = `<tr><td>${nama}</td><td>${hp}</td><td>${tipe}</td><td>${tgl}</td><td><button onclick="this.closest('tr').remove()">Hapus</button></td></tr>`;
+      document.querySelector('#tabelPelanggan tbody').innerHTML += row;
+    }
+
+    function simpanTagihan() {
+      const nama = document.getElementById('namaTagihan').value;
+      const tagihan = document.getElementById('jumlahTagihan').value;
+      const row = `<tr><td>${nama}</td><td>${tagihan}</td><td><button onclick="this.closest('tr').remove()">Hapus</button></td></tr>`;
+      document.querySelector('#tabelTagihan tbody').innerHTML += row;
+    }
+  </script>
 </body>
 </html>
