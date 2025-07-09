@@ -4,162 +4,150 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RNV Net</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      background: #0f0f0f;
+      background-color: #0f0f0f;
       color: #fff;
-      font-family: 'Segoe UI', sans-serif;
     }
     .nav-link.active {
-      background-color: #6f42c1;
-      color: #fff !important;
+      background-color: #6f42c1 !important;
+      color: white !important;
+      border-radius: 5px;
     }
-    .nav-tabs {
-      margin-top: 1rem;
+    .tab-content {
+      margin-top: 30px;
     }
-    .tab-content > .tab-pane {
-      padding: 1.5rem;
+    .tab-pane {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     .hologram {
       text-align: center;
-      padding: 2rem;
-    }
-    .hologram h1 {
-      font-size: 3rem;
-      color: #00f0ff;
-      text-shadow: 0 0 10px #00f0ff;
-    }
-    .hologram p {
-      font-size: 1.2rem;
-      color: #aaa;
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-top: 50px;
+      color: #6f42c1;
+      text-shadow: 0 0 5px #6f42c1, 0 0 15px #6f42c1;
     }
   </style>
 </head>
 <body>
-  <div class="container mt-3">
-    <h2 class="text-center mb-3">RNV Net</h2>
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard" type="button" role="tab">Dashboard</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="voucher-tab" data-bs-toggle="tab" data-bs-target="#voucher" type="button" role="tab">Pelanggan Voucher</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="pppoe-tab" data-bs-toggle="tab" data-bs-target="#pppoe" type="button" role="tab">Pelanggan PPPoE</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="pembayaran-tab" data-bs-toggle="tab" data-bs-target="#pembayaran" type="button" role="tab">Pembayaran</button>
-      </li>
-    </ul>
-    <div class="tab-content" id="myTabContent">
-      <div class="tab-pane fade show active" id="dashboard" role="tabpanel">
-        <div class="hologram">
-          <h1>Selamat Datang di RNV Net</h1>
-          <p>Sistem Pembukuan Pelanggan Internet RT/RW berbasis Firebase.</p>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
+    <a class="navbar-brand" href="#">RNV Net</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link active" data-bs-toggle="tab" href="#dashboard">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="tab" href="#voucher">Pelanggan Voucher</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="tab" href="#pppoe">Pelanggan PPPoE</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-bs-toggle="tab" href="#pembayaran">Pembayaran</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container tab-content">
+    <div class="tab-pane fade show active" id="dashboard">
+      <div class="hologram">Selamat Datang di RNV Net</div>
+      <p class="text-center">Sistem pembukuan dan manajemen pelanggan WiFi RT/RW berbasis Firebase</p>
+    </div>
+
+    <div class="tab-pane fade" id="voucher">
+      <h3>Pelanggan Voucher</h3>
+      <form id="formVoucher">
+        <div class="mb-2">
+          <label class="form-label">Nama</label>
+          <input type="text" class="form-control" id="namaVoucher" required>
         </div>
-      </div>
-      <div class="tab-pane fade" id="voucher" role="tabpanel">
-        <h4>Data Pelanggan Voucher</h4>
-        <form id="formVoucher">
-          <input class="form-control mb-2" placeholder="Nama" id="namaVoucher">
-          <input class="form-control mb-2" placeholder="Nomor HP" id="hpVoucher">
-          <input class="form-control mb-2" type="date" id="tanggalVoucher">
-          <button class="btn btn-success" type="submit">Simpan</button>
-        </form>
-        <ul class="list-group mt-3" id="listVoucher"></ul>
-      </div>
-      <div class="tab-pane fade" id="pppoe" role="tabpanel">
-        <h4>Data Pelanggan PPPoE</h4>
-        <form id="formPPPoE">
-          <input class="form-control mb-2" placeholder="Nama" id="namaPPPoE">
-          <input class="form-control mb-2" placeholder="Nomor HP" id="hpPPPoE">
-          <input class="form-control mb-2" type="date" id="tanggalPPPoE">
-          <button class="btn btn-success" type="submit">Simpan</button>
-        </form>
-        <ul class="list-group mt-3" id="listPPPoE"></ul>
-      </div>
-      <div class="tab-pane fade" id="pembayaran" role="tabpanel">
-        <h4>Data Tagihan</h4>
-        <form id="formTagihan">
-          <input class="form-control mb-2" placeholder="Nama Pelanggan" id="namaTagihan">
-          <input class="form-control mb-2" placeholder="Jumlah Tagihan" id="jumlahTagihan">
-          <input class="form-control mb-2" type="month" id="bulanTagihan">
-          <button class="btn btn-success" type="submit">Simpan</button>
-        </form>
-        <ul class="list-group mt-3" id="listTagihan"></ul>
-      </div>
+        <div class="mb-2">
+          <label class="form-label">Nomor HP</label>
+          <input type="text" class="form-control" id="hpVoucher" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Tanggal Pasang</label>
+          <input type="date" class="form-control" id="tglVoucher" required>
+        </div>
+        <button type="submit" class="btn btn-success">Tambah</button>
+      </form>
+      <hr>
+      <div id="listVoucher"></div>
+    </div>
+
+    <div class="tab-pane fade" id="pppoe">
+      <h3>Pelanggan PPPoE</h3>
+      <form id="formPPPoE">
+        <div class="mb-2">
+          <label class="form-label">Nama</label>
+          <input type="text" class="form-control" id="namaPPPoE" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Nomor HP</label>
+          <input type="text" class="form-control" id="hpPPPoE" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Tanggal Pasang</label>
+          <input type="date" class="form-control" id="tglPPPoE" required>
+        </div>
+        <button type="submit" class="btn btn-success">Tambah</button>
+      </form>
+      <hr>
+      <div id="listPPPoE"></div>
+    </div>
+
+    <div class="tab-pane fade" id="pembayaran">
+      <h3>Daftar Tagihan</h3>
+      <form id="formTagihan">
+        <div class="mb-2">
+          <label class="form-label">Nama Pelanggan</label>
+          <input type="text" class="form-control" id="namaTagihan" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Nominal Tagihan</label>
+          <input type="number" class="form-control" id="jumlahTagihan" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Bulan</label>
+          <input type="month" class="form-control" id="bulanTagihan" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Catat Tagihan</button>
+      </form>
+      <hr>
+      <div id="listTagihan"></div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js"></script>
-  <script>
+  <!-- Firebase CDN -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
       authDomain: "raikicell.firebaseapp.com",
       databaseURL: "https://raikicell-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "raikicell",
-      storageBucket: "raikicell.firebasestorage.app",
+      storageBucket: "raikicell.firebaseapp.com",
       messagingSenderId: "648628376778",
       appId: "1:648628376778:web:961ca9084abeeb206bd033",
       measurementId: "G-JG8V2E41XR"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
 
-    // Tambah data
-    document.getElementById("formVoucher").addEventListener("submit", e => {
-      e.preventDefault();
-      const nama = namaVoucher.value, hp = hpVoucher.value, tgl = tanggalVoucher.value;
-      const id = db.ref("voucher").push().key;
-      db.ref("voucher/" + id).set({ nama, hp, tgl });
-    });
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-    document.getElementById("formPPPoE").addEventListener("submit", e => {
-      e.preventDefault();
-      const nama = namaPPPoE.value, hp = hpPPPoE.value, tgl = tanggalPPPoE.value;
-      const id = db.ref("pppoe").push().key;
-      db.ref("pppoe/" + id).set({ nama, hp, tgl });
-    });
-
-    document.getElementById("formTagihan").addEventListener("submit", e => {
-      e.preventDefault();
-      const nama = namaTagihan.value, jumlah = jumlahTagihan.value, bulan = bulanTagihan.value;
-      const id = db.ref("tagihan").push().key;
-      db.ref("tagihan/" + id).set({ nama, jumlah, bulan });
-    });
-
-    // Menampilkan data real-time
-    db.ref("voucher").on("value", snapshot => {
-      const ul = document.getElementById("listVoucher");
-      ul.innerHTML = "";
-      snapshot.forEach(child => {
-        const d = child.val();
-        ul.innerHTML += `<li class='list-group-item text-dark'>${d.nama} - ${d.hp} (${d.tgl})</li>`;
-      });
-    });
-
-    db.ref("pppoe").on("value", snapshot => {
-      const ul = document.getElementById("listPPPoE");
-      ul.innerHTML = "";
-      snapshot.forEach(child => {
-        const d = child.val();
-        ul.innerHTML += `<li class='list-group-item text-dark'>${d.nama} - ${d.hp} (${d.tgl})</li>`;
-      });
-    });
-
-    db.ref("tagihan").on("value", snapshot => {
-      const ul = document.getElementById("listTagihan");
-      ul.innerHTML = "";
-      snapshot.forEach(child => {
-        const d = child.val();
-        ul.innerHTML += `<li class='list-group-item text-dark'>${d.nama} - ${d.jumlah} (${d.bulan})</li>`;
-      });
-    });
+    // Simpan dan tampil data untuk semua form nanti disini...
   </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
