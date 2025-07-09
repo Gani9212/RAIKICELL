@@ -3,56 +3,98 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RNV Net Admin</title>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.0.0/dist/full.css" rel="stylesheet">
+  <title>RNV Net - Dashboard</title>
+  <script type="module">
+    // Firebase setup
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
+      authDomain: "raikicell.firebaseapp.com",
+      databaseURL: "https://raikicell-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "raikicell",
+      storageBucket: "raikicell.firebasestorage.app",
+      messagingSenderId: "648628376778",
+      appId: "1:648628376778:web:70098faf30f123ed6bd033",
+      measurementId: "G-WWT1K74HHR"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Dom Ready
+    document.addEventListener("DOMContentLoaded", () => {
+      const pelangganForm = document.getElementById("pelanggan-form");
+      const pelangganTable = document.getElementById("pelanggan-table-body");
+
+      async function renderPelanggan() {
+        pelangganTable.innerHTML = "";
+        const snapshot = await getDocs(collection(db, "pelanggan"));
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${data.nama}</td>
+            <td>${data.nohp}</td>
+            <td>${data.tipe}</td>
+            <td>${data.tanggal}</td>
+            <td class="text-right">
+              <button class="text-blue-500">Edit</button>
+              <button class="text-red-500 ml-2">Hapus</button>
+            </td>
+          `;
+          pelangganTable.appendChild(row);
+        });
+      }
+
+      pelangganForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        await addDoc(collection(db, "pelanggan"), {
+          nama: form.nama.value,
+          nohp: form.nohp.value,
+          tipe: form.tipe.value,
+          tanggal: form.tanggal.value
+        });
+        form.reset();
+        renderPelanggan();
+      });
+
+      renderPelanggan();
+    });
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white">
+<body class="bg-gray-100 text-gray-800">
+  <header class="bg-blue-900 text-white p-4 text-xl font-bold">RNV Net Dashboard</header>
 
-  <!-- Login Page -->
-  <div id="loginPage" class="h-screen flex items-center justify-center">
-    <div class="bg-gray-800 p-8 rounded-xl shadow-md w-full max-w-sm">
-      <h2 class="text-2xl font-bold mb-6 text-center">Login Admin RNV Net</h2>
-      <input id="username" type="text" placeholder="Username" class="input input-bordered w-full mb-4">
-      <input id="password" type="password" placeholder="Password" class="input input-bordered w-full mb-6">
-      <button onclick="login()" class="btn btn-primary w-full">Login</button>
-    </div>
-  </div>
+  <main class="p-6 max-w-5xl mx-auto">
+    <h2 class="text-2xl font-semibold mb-4">Data Pelanggan</h2>
 
-  <!-- Main Content -->
-  <div id="mainContent" class="hidden">
-    <div class="navbar bg-gray-800 text-white p-4">
-      <div class="text-xl font-bold">RNV Net</div>
-      <div class="ml-auto space-x-2">
-        <button class="btn" onclick="showTab('dashboard')">Dashboard</button>
-        <button class="btn" onclick="showTab('voucher')">Pelanggan Voucher</button>
-        <button class="btn" onclick="showTab('pppoe')">Pelanggan PPPoE</button>
-        <button class="btn" onclick="showTab('pembayaran')">Pembayaran</button>
-        <button class="btn btn-error" onclick="logout()">Logout</button>
-      </div>
-    </div>
+    <form id="pelanggan-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-4 rounded shadow">
+      <input type="text" name="nama" placeholder="Nama Pelanggan" required class="border p-2 rounded">
+      <input type="text" name="nohp" placeholder="No HP / WhatsApp" required class="border p-2 rounded">
+      <select name="tipe" required class="border p-2 rounded">
+        <option value="PPPoE">PPPoE</option>
+        <option value="Voucher">Voucher</option>
+      </select>
+      <input type="date" name="tanggal" required class="border p-2 rounded">
+      <button type="submit" class="col-span-full bg-blue-700 text-white py-2 rounded hover:bg-blue-800">Simpan</button>
+    </form>
 
-    <!-- Tabs Content -->
-    <div class="p-6">
-      <!-- Dashboard -->
-      <div id="dashboard" class="tab-content">
-        <h2 class="text-3xl font-bold mb-4">Selamat Datang di RNV Net</h2>
-        <div class="bg-blue-500 rounded-xl p-8 shadow-xl text-center animate-pulse">
-          <h3 class="text-2xl">Jaringan Masa Depan</h3>
-          <p>Internet cepat, stabil, dan terpercaya untuk semua warga</p>
-        </div>
-      </div>
-
-      <!-- Pelanggan Voucher -->
-      <div id="voucher" class="tab-content hidden">
-        <h2 class="text-2xl font-bold mb-4">Data Pelanggan Voucher</h2>
-        <form onsubmit="handleVoucherSubmit(event)" class="space-y-2">
-          <input type="text" id="namaVoucher" placeholder="Nama" class="input input-bordered w-full">
-          <input type="text" id="hpVoucher" placeholder="Nomor HP" class="input input-bordered w-full">
-          <input type="date" id="tanggalVoucher" class="input input-bordered w-full">
-          <button type="submit" class="btn btn-success w-full">Tambah Data</button>
-        </form>
-        <div id="listVoucher" class="mt-4 space-y-2"></div>
-      </div>
-
-      <!-- Pelanggan PPPoE -->
+    <table class="table-auto w-full mt-6 bg-white rounded shadow">
+      <thead class="bg-blue-100">
+        <tr>
+          <th class="p-2 text-left">Nama</th>
+          <th class="p-2 text-left">No HP</th>
+          <th class="p-2 text-left">Tipe</th>
+          <th class="p-2 text-left">Tanggal Pasang</th>
+          <th class="p-2 text-right">Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="pelanggan-table-body"></tbody>
+    </table>
+  </main>
+</body>
+</html>
