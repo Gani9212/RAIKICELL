@@ -69,6 +69,12 @@
       border-left: 4px solid #00ffc3;
       display: flex;
       justify-content: space-between;
+      align-items: center;
+    }
+    .actions button {
+      margin-left: 5px;
+      background: #00ffc3;
+      color: black;
     }
     #login {
       display: flex;
@@ -79,10 +85,6 @@
     }
     #mainApp {
       display: none;
-    }
-    small {
-      font-size: 12px;
-      opacity: 0.7;
     }
   </style>
 </head>
@@ -139,14 +141,20 @@
         <input type="month" id="bulanBayar">
         <button type="submit">Simpan</button>
       </form>
-      <h3>🧾 Riwayat Pembayaran</h3>
+      <h3>🧾 Data Tagihan</h3>
+      <form onsubmit="tambahTagihan(event)">
+        <input type="text" id="namaTagihan" placeholder="Nama Pelanggan">
+        <input type="number" id="jumlahTagihan" placeholder="Jumlah Tagihan">
+        <input type="month" id="bulanTagihan">
+        <button type="submit">Tambah Tagihan</button>
+      </form>
       <ul id="riwayatPembayaran"></ul>
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
@@ -196,6 +204,11 @@
       muatSemua();
     }
 
+    window.hapusPelanggan = async function(id) {
+      await deleteDoc(doc(db, 'pelanggan', id));
+      muatSemua();
+    }
+
     window.tambahPembayaran = async function(e) {
       e.preventDefault();
       const nama = document.getElementById('namaBayar').value;
@@ -203,6 +216,15 @@
       const bulan = document.getElementById('bulanBayar').value;
       await addDoc(collection(db, 'pembayaran'), { nama, jumlah, bulan });
       muatSemua();
+    }
+
+    window.tambahTagihan = async function(e) {
+      e.preventDefault();
+      const nama = document.getElementById('namaTagihan').value;
+      const jumlah = parseInt(document.getElementById('jumlahTagihan').value);
+      const bulan = document.getElementById('bulanTagihan').value;
+      await addDoc(collection(db, 'tagihan'), { nama, jumlah, bulan });
+      alert("Tagihan berhasil ditambahkan");
     }
 
     async function muatSemua() {
@@ -217,7 +239,7 @@
       pelanggans.forEach(p => {
         const d = p.data();
         const li = document.createElement('li');
-        li.innerHTML = `${d.nama} - ${d.paket} (Rp${d.biaya}) <button onclick="ubahNama('${p.id}', '${d.nama}')">Edit</button>`;
+        li.innerHTML = `${d.nama} - ${d.paket} (Rp${d.biaya}) <span class='actions'><button onclick="ubahNama('${p.id}', '${d.nama}')">Edit</button><button onclick="hapusPelanggan('${p.id}')">Hapus</button></span>`;
         if (d.jenis === 'Voucher') voucher.appendChild(li);
         else pppoe.appendChild(li);
       });
