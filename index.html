@@ -116,7 +116,8 @@
       <form onsubmit="tambahPelanggan(event, 'Voucher')">
         <input type="text" id="namaVoucher" placeholder="Nama">
         <input type="text" id="paketVoucher" placeholder="Paket">
-        <input type="number" id="biayaVoucher" placeholder="Biaya">
+        <input type="text" id="hpVoucher" placeholder="Nomor HP">
+        <input type="date" id="tanggalVoucher" placeholder="Tanggal Pasang">
         <button type="submit">Tambah</button>
       </form>
       <ul id="listVoucher"></ul>
@@ -127,7 +128,8 @@
       <form onsubmit="tambahPelanggan(event, 'PPPoE')">
         <input type="text" id="namaPPPoE" placeholder="Nama">
         <input type="text" id="paketPPPoE" placeholder="Paket">
-        <input type="number" id="biayaPPPoE" placeholder="Biaya">
+        <input type="text" id="hpPPPoE" placeholder="Nomor HP">
+        <input type="date" id="tanggalPPPoE" placeholder="Tanggal Pasang">
         <button type="submit">Tambah</button>
       </form>
       <ul id="listPPPoE"></ul>
@@ -193,8 +195,9 @@
       e.preventDefault();
       const nama = document.getElementById('nama' + jenis).value;
       const paket = document.getElementById('paket' + jenis).value;
-      const biaya = parseInt(document.getElementById('biaya' + jenis).value);
-      await addDoc(collection(db, 'pelanggan'), { nama, paket, biaya, jenis });
+      const hp = document.getElementById('hp' + jenis).value;
+      const tanggal = document.getElementById('tanggal' + jenis).value;
+      await addDoc(collection(db, 'pelanggan'), { nama, paket, hp, tanggal, jenis });
       muatSemua();
     }
 
@@ -239,7 +242,7 @@
       pelanggans.forEach(p => {
         const d = p.data();
         const li = document.createElement('li');
-        li.innerHTML = `${d.nama} - ${d.paket} (Rp${d.biaya}) <span class='actions'><button onclick="ubahNama('${p.id}', '${d.nama}')">Edit</button><button onclick="hapusPelanggan('${p.id}')">Hapus</button></span>`;
+        li.innerHTML = `${d.nama} - ${d.paket} - ${d.hp} (${d.tanggal}) <span class='actions'><button onclick="ubahNama('${p.id}', '${d.nama}')">Edit</button><button onclick="hapusPelanggan('${p.id}')">Hapus</button></span>`;
         if (d.jenis === 'Voucher') voucher.appendChild(li);
         else pppoe.appendChild(li);
       });
