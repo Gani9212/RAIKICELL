@@ -1,144 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Pembukuan WiFi RT/RW Net</title>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pembukuan WiFi RT/RW Net</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root {
-      --bg: #0f0f1a;
-      --card: #1f1f2e;
-      --accent: #00ffe1;
-      --text: #ffffff;
-    }
     body {
-      margin: 0;
+      background: #0f0f0f;
+      color: #00ffc3;
       font-family: 'Orbitron', sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #141414;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      border-bottom: 2px solid #00ffc3;
     }
     nav {
-      background: var(--card);
-      padding: 1rem;
       display: flex;
-      gap: 1rem;
-      justify-content: center;
-      flex-wrap: wrap;
+      background: #1a1a1a;
+      border-bottom: 1px solid #00ffc3;
     }
     nav button {
-      background: var(--accent);
+      flex: 1;
+      padding: 1rem;
+      background: none;
+      color: #00ffc3;
       border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 1rem;
-      color: black;
-      font-weight: bold;
       cursor: pointer;
+      font-weight: bold;
     }
-    nav button.active {
-      background: #00b3a4;
+    nav button:hover, nav button.active {
+      background: #00ffc3;
+      color: #000;
     }
     .page {
       display: none;
-      padding: 2rem;
-      max-width: 800px;
-      margin: auto;
+      padding: 1.5rem;
     }
     .page.active {
       display: block;
     }
-    input, select, button {
-      width: 100%;
-      margin: 0.5rem 0;
-      padding: 0.75rem;
-      border: none;
-      border-radius: 0.5rem;
-      background-color: #2e2e44;
-      color: var(--text);
-    }
     ul {
       list-style: none;
-      padding-left: 0;
+      padding: 0;
     }
     li {
-      background: #2e2e44;
-      margin-bottom: 0.5rem;
-      padding: 0.5rem;
-      border-radius: 0.5rem;
+      background: #222;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      border-left: 5px solid #00ffc3;
     }
-    #login {
-      padding: 2rem;
-      max-width: 400px;
-      margin: auto;
-      text-align: center;
+    button {
+      margin-right: 0.5rem;
+      padding: 0.4rem 0.8rem;
+      background-color: #00ffc3;
+      color: black;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
     }
-    .hidden { display: none; }
-    h2 {
-      text-align: center;
-      margin-top: 1rem;
+    canvas {
+      max-width: 100%;
+      background: white;
     }
   </style>
 </head>
 <body>
-  <div id="login">
-    <h2>Login Admin</h2>
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="login()">Login</button>
+  <header>
+    📡 Pembukuan WiFi RT/RW Net
+  </header>
+
+  <nav>
+    <button class="tab active" onclick="openTab('dashboard')">Dashboard</button>
+    <button class="tab" onclick="openTab('voucher')">Pelanggan Voucher</button>
+    <button class="tab" onclick="openTab('pppoe')">Pelanggan PPPoE</button>
+    <button class="tab" onclick="openTab('pembayaran')">Pembayaran</button>
+  </nav>
+
+  <div id="dashboard" class="page active">
+    <h2>📊 Statistik Bulanan</h2>
+    <canvas id="chartPembayaran" height="120"></canvas>
+    <div id="laporanBulanan"></div>
   </div>
 
-  <div id="main" class="hidden">
-    <nav>
-      <button onclick="showPage('dashboard', this)" class="active">Dashboard</button>
-      <button onclick="showPage('voucher', this)">Pelanggan Voucher</button>
-      <button onclick="showPage('pppoe', this)">Pelanggan PPPoE</button>
-      <button onclick="showPage('pembayaran', this)">Pembayaran</button>
-      <button onclick="logout()">Logout</button>
-    </nav>
-
-    <div id="dashboard" class="page active">
-      <h2>Dashboard</h2>
-      <p>Selamat datang di sistem pembukuan WiFi RT/RW Net.</p>
-    </div>
-
-    <div id="voucher" class="page">
-      <h2>Pelanggan Voucher</h2>
-      <input id="vNama" placeholder="Nama">
-      <input id="vAlamat" placeholder="Alamat">
-      <input id="vNoHP" placeholder="No HP">
-      <input id="vPaket" placeholder="Paket">
-      <input id="vBiaya" placeholder="Biaya">
-      <button onclick="tambahPelanggan('Voucher')">Tambah</button>
-      <ul id="listVoucher"></ul>
-    </div>
-
-    <div id="pppoe" class="page">
-      <h2>Pelanggan PPPoE</h2>
-      <input id="pNama" placeholder="Nama">
-      <input id="pAlamat" placeholder="Alamat">
-      <input id="pNoHP" placeholder="No HP">
-      <input id="pPaket" placeholder="Paket">
-      <input id="pBiaya" placeholder="Biaya">
-      <button onclick="tambahPelanggan('PPPoE')">Tambah</button>
-      <ul id="listPPPoE"></ul>
-    </div>
-
-    <div id="pembayaran" class="page">
-      <h2>Pembayaran</h2>
-      <select id="pelanggan"></select>
-      <input id="bulan" placeholder="Bulan (contoh: 2025_07)">
-      <button onclick="bayar()">Tandai Lunas</button>
-      <h3>Riwayat Pembayaran</h3>
-      <ul id="statusPembayaran"></ul>
-    </div>
+  <div id="voucher" class="page">
+    <h2>📋 Pelanggan Voucher</h2>
+    <ul id="listVoucher"></ul>
   </div>
 
-  <!-- Firebase CDN Compat -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <div id="pppoe" class="page">
+    <h2>📋 Pelanggan PPPoE</h2>
+    <ul id="listPPPoE"></ul>
+  </div>
 
-  <script>
-    // Firebase config via compat
+  <div id="pembayaran" class="page">
+    <h2>💰 Riwayat Pembayaran</h2>
+    <ul id="riwayatPembayaran"></ul>
+  </div>
+
+  <!-- Firebase CDN (modular style v11.10.0) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
+    import { getFirestore, collection, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
       authDomain: "raikicell.firebaseapp.com",
@@ -150,85 +121,93 @@
       measurementId: "G-JG8V2E41XR"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
 
-    function login() {
-      const u = document.getElementById('username').value;
-      const p = document.getElementById('password').value;
-      if (u === 'Raikinet' && p === 'Cintawargi1909') {
-        document.getElementById('login').classList.add('hidden');
-        document.getElementById('main').classList.remove('hidden');
+    async function loadData() {
+      const voucherList = document.getElementById('listVoucher');
+      const pppoeList = document.getElementById('listPPPoE');
+      const riwayatList = document.getElementById('riwayatPembayaran');
+      voucherList.innerHTML = '';
+      pppoeList.innerHTML = '';
+      riwayatList.innerHTML = '';
+
+      const q = await getDocs(collection(db, 'pelanggan'));
+      q.forEach(d => {
+        const data = d.data();
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <strong>${data.nama}</strong><br/>
+          Paket: ${data.paket} | Biaya: Rp${data.biaya}<br/>
+          <button onclick="editData('${d.id}', '${data.jenis}')">Edit</button>
+          <button onclick="hapusData('${d.id}')">Hapus</button>
+        `;
+        if (data.jenis === 'Voucher') voucherList.appendChild(li);
+        else pppoeList.appendChild(li);
+      });
+
+      const pembayaran = await getDocs(collection(db, 'pembayaran'));
+      const perBulan = {};
+      pembayaran.forEach(d => {
+        const { bulan, nama } = d.data();
+        if (!perBulan[bulan]) perBulan[bulan] = 0;
+        perBulan[bulan]++;
+        const li = document.createElement('li');
+        li.innerHTML = `${nama} - Bulan: ${bulan}`;
+        riwayatList.appendChild(li);
+      });
+
+      const labels = Object.keys(perBulan);
+      const values = Object.values(perBulan);
+
+      new Chart(document.getElementById('chartPembayaran'), {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Pembayaran Lunas',
+            data: values,
+            backgroundColor: '#00ffc3'
+          }]
+        }
+      });
+
+      let laporan = '<h3>Laporan Bulanan</h3><ul>';
+      labels.forEach((bulan, i) => {
+        laporan += `<li>${bulan}: ${values[i]} pembayaran</li>`;
+      });
+      laporan += '</ul>';
+      document.getElementById('laporanBulanan').innerHTML = laporan;
+    }
+
+    window.editData = async function(id, jenis) {
+      const nama = prompt('Nama baru:');
+      const paket = prompt('Paket baru:');
+      const biaya = prompt('Biaya baru:');
+      if (nama && paket && biaya) {
+        const ref = doc(db, 'pelanggan', id);
+        await updateDoc(ref, { nama, paket, biaya: parseInt(biaya), jenis });
         loadData();
-      } else {
-        alert("Username atau password salah!");
       }
-    }
+    };
 
-    function logout() {
-      document.getElementById('main').classList.add('hidden');
-      document.getElementById('login').classList.remove('hidden');
-    }
+    window.hapusData = async function(id) {
+      if (confirm('Hapus data ini?')) {
+        const ref = doc(db, 'pelanggan', id);
+        await deleteDoc(ref);
+        loadData();
+      }
+    };
 
-    function showPage(id, btn) {
+    function openTab(tab) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      document.getElementById(tab).classList.add('active');
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
     }
 
-    function tambahPelanggan(jenis) {
-      const data = {
-        nama: jenis === 'Voucher' ? vNama.value : pNama.value,
-        alamat: jenis === 'Voucher' ? vAlamat.value : pAlamat.value,
-        nohp: jenis === 'Voucher' ? vNoHP.value : pNoHP.value,
-        paket: jenis === 'Voucher' ? vPaket.value : pPaket.value,
-        biaya: parseInt(jenis === 'Voucher' ? vBiaya.value : pBiaya.value),
-        jenis: jenis
-      };
-      db.collection("pelanggan").add(data).then(() => loadData());
-    }
-
-    function loadData() {
-      listVoucher.innerHTML = "";
-      listPPPoE.innerHTML = "";
-      pelanggan.innerHTML = "";
-      db.collection("pelanggan").get().then(snapshot => {
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          const li = document.createElement("li");
-          li.textContent = `${d.nama} | ${d.paket} | Rp${d.biaya}`;
-          const opt = document.createElement("option");
-          opt.value = doc.id;
-          opt.textContent = d.nama;
-          pelanggan.appendChild(opt);
-          if (d.jenis === 'Voucher') listVoucher.appendChild(li);
-          else listPPPoE.appendChild(li);
-        });
-      });
-      loadPembayaran();
-    }
-
-    function bayar() {
-      db.collection("pembayaran").add({
-        id_pelanggan: pelanggan.value,
-        bulan: bulan.value,
-        status: 'lunas',
-        tanggal: new Date()
-      }).then(() => loadPembayaran());
-    }
-
-    function loadPembayaran() {
-      statusPembayaran.innerHTML = "";
-      db.collection("pembayaran").orderBy('tanggal', 'desc').get().then(snapshot => {
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          const li = document.createElement("li");
-          li.textContent = `${d.bulan} - ${d.id_pelanggan} - ${d.status}`;
-          statusPembayaran.appendChild(li);
-        });
-      });
-    }
+    loadData();
   </script>
 </body>
 </html>
