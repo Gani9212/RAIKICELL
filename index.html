@@ -17,10 +17,12 @@
       padding: 20px;
     }
     header {
-      background: #111;
-      font-size: 24px;
+      background: linear-gradient(90deg, #00ffc3, #004b45);
+      font-size: 28px;
       text-align: center;
       border-bottom: 2px solid #00ffc3;
+      color: #000;
+      font-weight: bold;
     }
     nav {
       display: flex;
@@ -85,6 +87,14 @@
     }
     #mainApp {
       display: none;
+    }
+    #dashboard h2, #dashboard canvas, #dashboard #laporanBulanan {
+      background-color: #141414;
+      border: 1px solid #00ffc3;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 0 20px #00ffc3;
     }
   </style>
 </head>
@@ -227,7 +237,18 @@
       const jumlah = parseInt(document.getElementById('jumlahTagihan').value);
       const bulan = document.getElementById('bulanTagihan').value;
       await addDoc(collection(db, 'tagihan'), { nama, jumlah, bulan });
-      alert("Tagihan berhasil ditambahkan");
+      muatSemua();
+    }
+
+    window.editTagihan = async function(id, jumlahBaru) {
+      const ref = doc(db, 'tagihan', id);
+      await updateDoc(ref, { jumlah: parseInt(jumlahBaru) });
+      muatSemua();
+    }
+
+    window.hapusTagihan = async function(id) {
+      await deleteDoc(doc(db, 'tagihan', id));
+      muatSemua();
     }
 
     async function muatSemua() {
@@ -247,13 +268,18 @@
         else pppoe.appendChild(li);
       });
 
+      const tagihanSnap = await getDocs(collection(db, 'tagihan'));
+      tagihanSnap.forEach(t => {
+        const d = t.data();
+        const li = document.createElement('li');
+        li.innerHTML = `${d.nama} - Rp${d.jumlah} (${d.bulan}) <span class='actions'><button onclick="ubahTagihan('${t.id}', ${d.jumlah})">Edit</button><button onclick="hapusTagihan('${t.id}')">Hapus</button></span>`;
+        riwayat.appendChild(li);
+      });
+
       const bayars = await getDocs(collection(db, 'pembayaran'));
       const laporan = {};
       bayars.forEach(b => {
         const d = b.data();
-        const li = document.createElement('li');
-        li.textContent = `${d.nama} - Rp${d.jumlah} (${d.bulan})`;
-        riwayat.appendChild(li);
         laporan[d.bulan] = (laporan[d.bulan] || 0) + d.jumlah;
       });
 
@@ -276,6 +302,11 @@
     window.ubahNama = function(id, namaLama) {
       const baru = prompt('Ubah nama:', namaLama);
       if (baru) editNama(id, baru);
+    }
+
+    window.ubahTagihan = function(id, jumlahLama) {
+      const baru = prompt('Ubah jumlah tagihan:', jumlahLama);
+      if (baru) editTagihan(id, baru);
     }
   </script>
 </body>
