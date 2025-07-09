@@ -1,626 +1,234 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Pembukuan Usaha</title>
-<style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    display: flex;
-    height: 100vh;
-    overflow: hidden;
-  }
-  .sidebar {
-    width: 200px;
-    background-color: #222;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    padding: 10px 5px;
-  }
-  .sidebar button {
-    background-color: #444;
-    border: none;
-    color: white;
-    padding: 10px 15px;
-    margin: 5px 10px;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 4px;
-    text-align: left;
-    transition: background-color 0.3s;
-  }
-  .sidebar button.active, .sidebar button:hover {
-    background-color: #00aaff;
-  }
-  .content {
-    flex-grow: 1;
-    padding: 20px;
-    overflow-y: auto;
-  }
-  .tab-content {
-    display: none;
-  }
-  .tab-content.active {
-    display: block;
-  }
-  input, select, button {
-    margin: 5px 0;
-    padding: 7px;
-    font-size: 16px;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-  }
-  th, td {
-    border: 1px solid #aaa;
-    padding: 8px;
-    text-align: left;
-  }
-  .small {
-    font-size: 12px;
-    padding: 4px 6px;
-  }
-  #uang-display {
-    position: fixed;
-    bottom: 10px;
-    left: 210px;
-    background: #f2f2f2;
-    padding: 8px 12px;
-    border-radius: 5px;
-    font-weight: bold;
-    font-size: 18px;
-  }
-</style>
+  <title>Pembukuan WiFi RT/RW Net</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f0f1a;
+      --card: #1f1f2e;
+      --accent: #00ffe1;
+      --text: #ffffff;
+    }
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+    }
+    nav {
+      background: var(--card);
+      padding: 1rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    nav button {
+      background: var(--accent);
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 1rem;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    nav button.active {
+      background: #00b3a4;
+    }
+    .page {
+      display: none;
+      padding: 2rem;
+      max-width: 800px;
+      margin: auto;
+    }
+    .page.active {
+      display: block;
+    }
+    input, select, button {
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 0.5rem;
+      background-color: #2e2e44;
+      color: var(--text);
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      background: #2e2e44;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+    }
+    #login {
+      padding: 2rem;
+      max-width: 400px;
+      margin: auto;
+      text-align: center;
+    }
+    .hidden { display: none; }
+    h2 {
+      text-align: center;
+      margin-top: 1rem;
+    }
+  </style>
 </head>
 <body>
-
-<div class="sidebar">
-  <button id="tab-konter-btn" class="active">Transaksi Konter</button>
-  <button id="tab-warung-btn">Transaksi Warung</button>
-  <button id="tab-transaksi-btn">Transaksi Manual</button>
-  <button id="tab-edit-warung-btn">Edit Barang Warung</button>
-  <button id="tab-raikinet-btn">Transaksi Raikinet</button>
-  <button id="tab-edit-raikicell-btn">Edit Raikicell</button>
-  <button id="tab-pengeluaran-btn">Pengeluaran</button>
-  <button id="tab-laporan-btn">Laporan</button>
-</div>
-
-<div class="content">
-  <!-- Transaksi Konter -->
-  <div id="tab-konter" class="tab-content active">
-    <h2>Transaksi Konter</h2>
-    <input type="text" id="konter-nama" placeholder="Nama Barang" />
-    <input type="number" id="konter-fee" placeholder="Fee (Keuntungan)" />
-    <input type="number" id="konter-harga" placeholder="Harga Jual" />
-    <button onclick="tambahKonter()">Tambah</button>
-    <table>
-      <thead><tr><th>Nama</th><th>Fee</th><th>Harga</th><th>Aksi</th></tr></thead>
-      <tbody id="tabel-konter"></tbody>
-    </table>
+  <div id="login">
+    <h2>Login Admin</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
   </div>
 
-  <!-- Transaksi Warung -->
-  <div id="tab-warung" class="tab-content">
-    <h2>Transaksi Warung</h2>
-    <select id="warung-barang"></select><br/>
-    <input type="number" id="warung-jumlah" placeholder="Jumlah" min="1" />
-    <button onclick="tambahWarung()">Tambah</button>
-    <table>
-      <thead><tr><th>Nama</th><th>Jumlah</th><th>Fee</th><th>Harga</th><th>Aksi</th></tr></thead>
-      <tbody id="tabel-warung"></tbody>
-    </table>
+  <div id="main" class="hidden">
+    <nav>
+      <button onclick="showPage('dashboard', this)" class="active">Dashboard</button>
+      <button onclick="showPage('voucher', this)">Pelanggan Voucher</button>
+      <button onclick="showPage('pppoe', this)">Pelanggan PPPoE</button>
+      <button onclick="showPage('pembayaran', this)">Pembayaran</button>
+      <button onclick="logout()">Logout</button>
+    </nav>
+
+    <div id="dashboard" class="page active">
+      <h2>Dashboard</h2>
+      <p>Selamat datang di sistem pembukuan WiFi RT/RW Net.</p>
+    </div>
+
+    <div id="voucher" class="page">
+      <h2>Pelanggan Voucher</h2>
+      <input id="vNama" placeholder="Nama">
+      <input id="vAlamat" placeholder="Alamat">
+      <input id="vNoHP" placeholder="No HP">
+      <input id="vPaket" placeholder="Paket">
+      <input id="vBiaya" placeholder="Biaya">
+      <button onclick="tambahPelanggan('Voucher')">Tambah</button>
+      <ul id="listVoucher"></ul>
+    </div>
+
+    <div id="pppoe" class="page">
+      <h2>Pelanggan PPPoE</h2>
+      <input id="pNama" placeholder="Nama">
+      <input id="pAlamat" placeholder="Alamat">
+      <input id="pNoHP" placeholder="No HP">
+      <input id="pPaket" placeholder="Paket">
+      <input id="pBiaya" placeholder="Biaya">
+      <button onclick="tambahPelanggan('PPPoE')">Tambah</button>
+      <ul id="listPPPoE"></ul>
+    </div>
+
+    <div id="pembayaran" class="page">
+      <h2>Pembayaran</h2>
+      <select id="pelanggan"></select>
+      <input id="bulan" placeholder="Bulan (contoh: 2025_07)">
+      <button onclick="bayar()">Tandai Lunas</button>
+      <h3>Riwayat Pembayaran</h3>
+      <ul id="statusPembayaran"></ul>
+    </div>
   </div>
 
-  <!-- Transaksi Manual -->
-  <div id="tab-transaksi" class="tab-content">
-    <h2>Transaksi Manual</h2>
-    <input type="text" id="manual-nama" placeholder="Nama Barang" />
-    <input type="number" id="manual-fee" placeholder="Fee (Keuntungan)" />
-    <input type="number" id="manual-harga" placeholder="Harga Jual" />
-    <button onclick="tambahManual()">Tambah</button>
-    <table>
-      <thead><tr><th>Nama</th><th>Fee</th><th>Harga</th><th>Aksi</th></tr></thead>
-      <tbody id="tabel-manual"></tbody>
-    </table>
-  </div>
+  <!-- Firebase CDN Compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
-  <!-- Edit Barang Warung -->
-  <div id="tab-edit-warung" class="tab-content">
-    <h2>Edit Barang Warung</h2>
-    <input type="text" id="edit-warung-nama" placeholder="Nama Barang" />
-    <input type="number" id="edit-warung-fee" placeholder="Fee (Keuntungan)" />
-    <input type="number" id="edit-warung-harga" placeholder="Harga Jual" />
-    <button onclick="tambahEditWarung()">Tambah Barang</button>
-    <table>
-      <thead><tr><th>Nama</th><th>Fee</th><th>Harga</th><th>Aksi</th></tr></thead>
-      <tbody id="tabel-edit-warung"></tbody>
-    </table>
-  </div>
+  <script>
+    // Firebase config via compat
+    const firebaseConfig = {
+      apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
+      authDomain: "raikicell.firebaseapp.com",
+      databaseURL: "https://raikicell-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "raikicell",
+      storageBucket: "raikicell.firebasestorage.app",
+      messagingSenderId: "648628376778",
+      appId: "1:648628376778:web:961ca9084abeeb206bd033",
+      measurementId: "G-JG8V2E41XR"
+    };
 
-  <!-- Transaksi Raikinet -->
-  <div id="tab-raikinet" class="tab-content">
-    <h2>Transaksi Raikinet</h2>
-    <select id="raikinet-barang"></select><br/>
-    <input type="number" id="raikinet-jumlah" placeholder="Jumlah" min="1" />
-    <button onclick="tambahRaikinet()">Tambah</button>
-    <table>
-      <thead><tr><th>Nama</th><th>Jumlah</th><th>Fee</th><th>Harga</th><th>Aksi</th></tr></thead>
-      <tbody id="tabel-raikinet"></tbody>
-    </table>
-  </div>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  <!-- Edit Raikicell -->
-  <div id="tab-edit-raikicell" class="tab-content">
-    <h2>Edit Barang Raikicell</h2>
-    <input type="text" id="edit-raikicell-nama" placeholder="Nama Barang" />
-    <input type="number" id="edit-raikicell-fee" placeholder="Fee (Keuntungan)" />
-    <input type="number" id="edit-raikicell-harga" placeholder="Harga Jual" />
-    <button onclick="tambahEditRaikicell()">Tambah Barang</button>
-    <table>
-      <thead><tr><th>Nama</th><th>Fee</th><th>Harga</th><th>Aksi</th></tr></thead>
-      <tbody id="tabel-edit-raikicell"></tbody>
-    </table>
-  </div>
+    function login() {
+      const u = document.getElementById('username').value;
+      const p = document.getElementById('password').value;
+      if (u === 'Raikinet' && p === 'Cintawargi1909') {
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('main').classList.remove('hidden');
+        loadData();
+      } else {
+        alert("Username atau password salah!");
+      }
+    }
 
-  <!-- Pengeluaran -->
-  <div id="tab-pengeluaran" class="tab-content">
-    <h2>Pengeluaran</h2>
-    <input type="text" id="pengeluaran-ket" placeholder="Keterangan" />
-    <input type="number" id="pengeluaran-jumlah" placeholder="Jumlah" />
-    <button onclick="tambahPengeluaran()">Tambah</button>
-    <table>
-      <thead><tr><th>Keterangan</th><th>Jumlah</th><th>Aksi</th></tr></thead>
-      <tbody id="tabel-pengeluaran"></tbody>
-    </table>
-  </div>
+    function logout() {
+      document.getElementById('main').classList.add('hidden');
+      document.getElementById('login').classList.remove('hidden');
+    }
 
-  <!-- Laporan -->
-  <div id="tab-laporan" class="tab-content">
-    <h2>Laporan</h2>
-    <table>
-      <thead><tr><th>Jenis</th><th>Nama</th><th>Jumlah</th><th>Fee</th><th>Harga</th></tr></thead>
-      <tbody id="tabel-laporan"></tbody>
-      <tfoot>
-        <tr>
-          <th colspan="3">Total</th>
-          <th id="total-fee">0</th>
-          <th id="total-harga-jual">0</th>
-        </tr>
-        <tr>
-          <th colspan="4">Total Pengeluaran</th>
-          <th id="total-pengeluaran">0</th>
-        </tr>
-        <tr>
-          <th colspan="4">Saldo Bersih</th>
-          <th id="saldo-bersih">0</th>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
-</div>
+    function showPage(id, btn) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
 
-<div id="uang-display">Uang: <span id="total-uang">0</span></div>
+    function tambahPelanggan(jenis) {
+      const data = {
+        nama: jenis === 'Voucher' ? vNama.value : pNama.value,
+        alamat: jenis === 'Voucher' ? vAlamat.value : pAlamat.value,
+        nohp: jenis === 'Voucher' ? vNoHP.value : pNoHP.value,
+        paket: jenis === 'Voucher' ? vPaket.value : pPaket.value,
+        biaya: parseInt(jenis === 'Voucher' ? vBiaya.value : pBiaya.value),
+        jenis: jenis
+      };
+      db.collection("pelanggan").add(data).then(() => loadData());
+    }
 
-<script>
-  // Data key names
-  const KEY_KONTER = 'data_konter';
-  const KEY_WARUNG = 'data_warung';
-  const KEY_MANUAL = 'data_manual';
-  const KEY_PENGELUARAN = 'data_pengeluaran';
-  const KEY_RAIKINET = 'data_raikinet';
-  const KEY_EDIT_RAIKICELL = 'data_edit_raikicell';
+    function loadData() {
+      listVoucher.innerHTML = "";
+      listPPPoE.innerHTML = "";
+      pelanggan.innerHTML = "";
+      db.collection("pelanggan").get().then(snapshot => {
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          const li = document.createElement("li");
+          li.textContent = `${d.nama} | ${d.paket} | Rp${d.biaya}`;
+          const opt = document.createElement("option");
+          opt.value = doc.id;
+          opt.textContent = d.nama;
+          pelanggan.appendChild(opt);
+          if (d.jenis === 'Voucher') listVoucher.appendChild(li);
+          else listPPPoE.appendChild(li);
+        });
+      });
+      loadPembayaran();
+    }
 
-  // Inisialisasi default barang warung dan raikinet (kalau belum ada)
-  if (!localStorage.getItem(KEY_WARUNG)) {
-    // Contoh barang warung awal
-    const defaultWarung = [
-      {nama: 'Mie', fee: 1500, harga: 5000},
-      {nama: 'Es Cekek', fee: 500, harga: 1000},
-      {nama: 'Pop Ice', fee: 1000, harga: 3000},
-      {nama: 'Chocolatos', fee: 1000, harga: 4000},
-      {nama: 'Kopi', fee: 1000, harga: 3000},
-    ];
-    localStorage.setItem(KEY_WARUNG, JSON.stringify(defaultWarung));
-  }
-  if (!localStorage.getItem(KEY_RAIKINET)) {
-    const defaultRaikinet = [
-      {nama: 'Pulsa 5k', fee: 500, harga: 5000},
-      {nama: 'Pulsa 10k', fee: 1000, harga: 10000}
-    ];
-    localStorage.setItem(KEY_RAIKINET, JSON.stringify(defaultRaikinet));
-  }
-  if (!localStorage.getItem(KEY_EDIT_RAIKICELL)) {
-    localStorage.setItem(KEY_EDIT_RAIKICELL, JSON.stringify([]));
-  }
+    function bayar() {
+      db.collection("pembayaran").add({
+        id_pelanggan: pelanggan.value,
+        bulan: bulan.value,
+        status: 'lunas',
+        tanggal: new Date()
+      }).then(() => loadPembayaran());
+    }
 
-  // Fungsi pindah tab
-  function setActiveTab(tabId, btnId) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    document.getElementById(btnId).classList.add('active');
-    updateAllTables();
-  }
-
-  document.getElementById('tab-konter-btn').addEventListener('click', () => setActiveTab('tab-konter', 'tab-konter-btn'));
-  document.getElementById('tab-warung-btn').addEventListener('click', () => setActiveTab('tab-warung', 'tab-warung-btn'));
-  document.getElementById('tab-transaksi-btn').addEventListener('click', () => setActiveTab('tab-transaksi', 'tab-transaksi-btn'));
-  document.getElementById('tab-edit-warung-btn').addEventListener('click', () => setActiveTab('tab-edit-warung', 'tab-edit-warung-btn'));
-  document.getElementById('tab-raikinet-btn').addEventListener('click', () => setActiveTab('tab-raikinet', 'tab-raikinet-btn'));
-  document.getElementById('tab-edit-raikicell-btn').addEventListener('click', () => setActiveTab('tab-edit-raikicell', 'tab-edit-raikicell-btn'));
-  document.getElementById('tab-pengeluaran-btn').addEventListener('click', () => setActiveTab('tab-pengeluaran', 'tab-pengeluaran-btn'));
-  document.getElementById('tab-laporan-btn').addEventListener('click', () => setActiveTab('tab-laporan', 'tab-laporan-btn'));
-
-  // --- Transaksi Konter ---
-  function tambahKonter() {
-    const nama = document.getElementById('konter-nama').value.trim();
-    const fee = parseInt(document.getElementById('konter-fee').value);
-    const harga = parseInt(document.getElementById('konter-harga').value);
-    if (!nama || isNaN(fee) || isNaN(harga)) return alert('Isi semua kolom dengan benar.');
-
-    let data = JSON.parse(localStorage.getItem(KEY_KONTER) || '[]');
-    data.push({nama, fee, harga});
-    localStorage.setItem(KEY_KONTER, JSON.stringify(data));
-    clearInputs(['konter-nama', 'konter-fee', 'konter-harga']);
-    updateTabelKonter();
-    updateTotalUang();
-  }
-  function updateTabelKonter() {
-    const data = JSON.parse(localStorage.getItem(KEY_KONTER) || '[]');
-    const tbody = document.getElementById('tabel-konter');
-    tbody.innerHTML = '';
-    data.forEach((item, i) => {
-      tbody.innerHTML += `<tr>
-        <td>${item.nama}</td>
-        <td>${item.fee}</td>
-        <td>${item.harga}</td>
-        <td><button onclick="hapusKonter(${i})" class="small">Hapus</button></td>
-      </tr>`;
-    });
-  }
-  function hapusKonter(idx) {
-    let data = JSON.parse(localStorage.getItem(KEY_KONTER) || '[]');
-    data.splice(idx, 1);
-    localStorage.setItem(KEY_KONTER, JSON.stringify(data));
-    updateTabelKonter();
-    updateTotalUang();
-  }
-
-  // --- Transaksi Warung ---
-  function isiDropdownWarung() {
-    const warung = JSON.parse(localStorage.getItem(KEY_WARUNG) || '[]');
-    const sel = document.getElementById('warung-barang');
-    sel.innerHTML = '';
-    warung.forEach((item, i) => {
-      sel.innerHTML += `<option value="${i}">${item.nama} (Rp${item.harga.toLocaleString()})</option>`;
-    });
-  }
-  function tambahWarung() {
-    const idx = parseInt(document.getElementById('warung-barang').value);
-    const jumlah = parseInt(document.getElementById('warung-jumlah').value);
-    if (isNaN(idx) || isNaN(jumlah) || jumlah < 1) return alert('Pilih barang dan isi jumlah dengan benar.');
-
-    const warung = JSON.parse(localStorage.getItem(KEY_WARUNG) || '[]');
-    const barang = warung[idx];
-
-    let data = JSON.parse(localStorage.getItem(KEY_WARUNG + '_transaksi') || '[]');
-    data.push({
-      nama: barang.nama,
-      fee: barang.fee * jumlah,
-      harga: barang.harga * jumlah,
-      jumlah: jumlah
-    });
-    localStorage.setItem(KEY_WARUNG + '_transaksi', JSON.stringify(data));
-    clearInputs(['warung-jumlah']);
-    updateTabelWarung();
-    updateTotalUang();
-  }
-  function updateTabelWarung() {
-    const data = JSON.parse(localStorage.getItem(KEY_WARUNG + '_transaksi') || '[]');
-    const tbody = document.getElementById('tabel-warung');
-    tbody.innerHTML = '';
-    data.forEach((item, i) => {
-      tbody.innerHTML += `<tr>
-        <td>${item.nama}</td>
-        <td>${item.jumlah}</td>
-        <td>${item.fee}</td>
-        <td>${item.harga}</td>
-        <td><button onclick="hapusWarung(${i})" class="small">Hapus</button></td>
-      </tr>`;
-    });
-  }
-  function hapusWarung(idx) {
-    let data = JSON.parse(localStorage.getItem(KEY_WARUNG + '_transaksi') || '[]');
-    data.splice(idx, 1);
-    localStorage.setItem(KEY_WARUNG + '_transaksi', JSON.stringify(data));
-    updateTabelWarung();
-    updateTotalUang();
-  }
-
-  // --- Transaksi Manual ---
-  function tambahManual() {
-    const nama = document.getElementById('manual-nama').value.trim();
-    const fee = parseInt(document.getElementById('manual-fee').value);
-    const harga = parseInt(document.getElementById('manual-harga').value);
-    if (!nama || isNaN(fee) || isNaN(harga)) return alert('Isi semua kolom dengan benar.');
-
-    let data = JSON.parse(localStorage.getItem(KEY_MANUAL) || '[]');
-    data.push({nama, fee, harga});
-    localStorage.setItem(KEY_MANUAL, JSON.stringify(data));
-    clearInputs(['manual-nama', 'manual-fee', 'manual-harga']);
-    updateTabelManual();
-    updateTotalUang();
-  }
-  function updateTabelManual() {
-    const data = JSON.parse(localStorage.getItem(KEY_MANUAL) || '[]');
-    const tbody = document.getElementById('tabel-manual');
-    tbody.innerHTML = '';
-    data.forEach((item, i) => {
-      tbody.innerHTML += `<tr>
-        <td>${item.nama}</td>
-        <td>${item.fee}</td>
-        <td>${item.harga}</td>
-        <td><button onclick="hapusManual(${i})" class="small">Hapus</button></td>
-      </tr>`;
-    });
-  }
-  function hapusManual(idx) {
-    let data = JSON.parse(localStorage.getItem(KEY_MANUAL) || '[]');
-    data.splice(idx, 1);
-    localStorage.setItem(KEY_MANUAL, JSON.stringify(data));
-    updateTabelManual();
-    updateTotalUang();
-  }
-
-  // --- Edit Barang Warung ---
-  function tambahEditWarung() {
-    const nama = document.getElementById('edit-warung-nama').value.trim();
-    const fee = parseInt(document.getElementById('edit-warung-fee').value);
-    const harga = parseInt(document.getElementById('edit-warung-harga').value);
-    if (!nama || isNaN(fee) || isNaN(harga)) return alert('Isi semua kolom dengan benar.');
-
-    let data = JSON.parse(localStorage.getItem(KEY_WARUNG) || '[]');
-    data.push({nama, fee, harga});
-    localStorage.setItem(KEY_WARUNG, JSON.stringify(data));
-    clearInputs(['edit-warung-nama', 'edit-warung-fee', 'edit-warung-harga']);
-    updateTabelEditWarung();
-    isiDropdownWarung();
-  }
-  function updateTabelEditWarung() {
-    const data = JSON.parse(localStorage.getItem(KEY_WARUNG) || '[]');
-    const tbody = document.getElementById('tabel-edit-warung');
-    tbody.innerHTML = '';
-    data.forEach((item, i) => {
-      tbody.innerHTML += `<tr>
-        <td>${item.nama}</td>
-        <td>${item.fee}</td>
-        <td>${item.harga}</td>
-        <td><button onclick="hapusEditWarung(${i})" class="small">Hapus</button></td>
-      </tr>`;
-    });
-  }
-  function hapusEditWarung(idx) {
-    let data = JSON.parse(localStorage.getItem(KEY_WARUNG) || '[]');
-    data.splice(idx, 1);
-    localStorage.setItem(KEY_WARUNG, JSON.stringify(data));
-    updateTabelEditWarung();
-    isiDropdownWarung();
-  }
-
-  // --- Transaksi Raikinet ---
-  function isiDropdownRaikinet() {
-    const raikinet = JSON.parse(localStorage.getItem(KEY_RAIKINET) || '[]');
-    const sel = document.getElementById('raikinet-barang');
-    sel.innerHTML = '';
-    raikinet.forEach((item, i) => {
-      sel.innerHTML += `<option value="${i}">${item.nama} (Rp${item.harga.toLocaleString()})</option>`;
-    });
-  }
-  function tambahRaikinet() {
-    const idx = parseInt(document.getElementById('raikinet-barang').value);
-    const jumlah = parseInt(document.getElementById('raikinet-jumlah').value);
-    if (isNaN(idx) || isNaN(jumlah) || jumlah < 1) return alert('Pilih barang dan isi jumlah dengan benar.');
-
-    const raikinet = JSON.parse(localStorage.getItem(KEY_RAIKINET) || '[]');
-    const barang = raikinet[idx];
-
-    let data = JSON.parse(localStorage.getItem(KEY_RAIKINET + '_transaksi') || '[]');
-    data.push({
-      nama: barang.nama,
-      fee: barang.fee * jumlah,
-      harga: barang.harga * jumlah,
-      jumlah: jumlah
-    });
-    localStorage.setItem(KEY_RAIKINET + '_transaksi', JSON.stringify(data));
-    clearInputs(['raikinet-jumlah']);
-    updateTabelRaikinet();
-    updateTotalUang();
-  }
-  function updateTabelRaikinet() {
-    const data = JSON.parse(localStorage.getItem(KEY_RAIKINET + '_transaksi') || '[]');
-    const tbody = document.getElementById('tabel-raikinet');
-    tbody.innerHTML = '';
-    data.forEach((item, i) => {
-      tbody.innerHTML += `<tr>
-        <td>${item.nama}</td>
-        <td>${item.jumlah}</td>
-        <td>${item.fee}</td>
-        <td>${item.harga}</td>
-        <td><button onclick="hapusRaikinet(${i})" class="small">Hapus</button></td>
-      </tr>`;
-    });
-  }
-  function hapusRaikinet(idx) {
-    let data = JSON.parse(localStorage.getItem(KEY_RAIKINET + '_transaksi') || '[]');
-    data.splice(idx, 1);
-    localStorage.setItem(KEY_RAIKINET + '_transaksi', JSON.stringify(data));
-    updateTabelRaikinet();
-    updateTotalUang();
-  }
-
-  // --- Edit Barang Raikicell ---
-  function tambahEditRaikicell() {
-    const nama = document.getElementById('edit-raikicell-nama').value.trim();
-    const fee = parseInt(document.getElementById('edit-raikicell-fee').value);
-    const harga = parseInt(document.getElementById('edit-raikicell-harga').value);
-    if (!nama || isNaN(fee) || isNaN(harga)) return alert('Isi semua kolom dengan benar.');
-
-    let data = JSON.parse(localStorage.getItem(KEY_EDIT_RAIKICELL) || '[]');
-    data.push({nama, fee, harga});
-    localStorage.setItem(KEY_EDIT_RAIKICELL, JSON.stringify(data));
-    clearInputs(['edit-raikicell-nama', 'edit-raikicell-fee', 'edit-raikicell-harga']);
-    updateTabelEditRaikicell();
-  }
-  function updateTabelEditRaikicell() {
-    const data = JSON.parse(localStorage.getItem(KEY_EDIT_RAIKICELL) || '[]');
-    const tbody = document.getElementById('tabel-edit-raikicell');
-    tbody.innerHTML = '';
-    data.forEach((item, i) => {
-      tbody.innerHTML += `<tr>
-        <td>${item.nama}</td>
-        <td>${item.fee}</td>
-        <td>${item.harga}</td>
-        <td><button onclick="hapusEditRaikicell(${i})" class="small">Hapus</button></td>
-      </tr>`;
-    });
-  }
-  function hapusEditRaikicell(idx) {
-    let data = JSON.parse(localStorage.getItem(KEY_EDIT_RAIKICELL) || '[]');
-    data.splice(idx, 1);
-    localStorage.setItem(KEY_EDIT_RAIKICELL, JSON.stringify(data));
-    updateTabelEditRaikicell();
-  }
-
-  // --- Pengeluaran ---
-  function tambahPengeluaran() {
-    const ket = document.getElementById('pengeluaran-ket').value.trim();
-    const jumlah = parseInt(document.getElementById('pengeluaran-jumlah').value);
-    if (!ket || isNaN(jumlah)) return alert('Isi semua kolom dengan benar.');
-
-    let data = JSON.parse(localStorage.getItem(KEY_PENGELUARAN) || '[]');
-    data.push({ket, jumlah});
-    localStorage.setItem(KEY_PENGELUARAN, JSON.stringify(data));
-    clearInputs(['pengeluaran-ket', 'pengeluaran-jumlah']);
-    updateTabelPengeluaran();
-    updateTotalUang();
-  }
-  function updateTabelPengeluaran() {
-    const data = JSON.parse(localStorage.getItem(KEY_PENGELUARAN) || '[]');
-    const tbody = document.getElementById('tabel-pengeluaran');
-    tbody.innerHTML = '';
-    data.forEach((item, i) => {
-      tbody.innerHTML += `<tr>
-        <td>${item.ket}</td>
-        <td>${item.jumlah}</td>
-        <td><button onclick="hapusPengeluaran(${i})" class="small">Hapus</button></td>
-      </tr>`;
-    });
-  }
-  function hapusPengeluaran(idx) {
-    let data = JSON.parse(localStorage.getItem(KEY_PENGELUARAN) || '[]');
-    data.splice(idx, 1);
-    localStorage.setItem(KEY_PENGELUARAN, JSON.stringify(data));
-    updateTabelPengeluaran();
-    updateTotalUang();
-  }
-
-  // --- Laporan ---
-  function updateLaporan() {
-    const tbody = document.getElementById('tabel-laporan');
-    tbody.innerHTML = '';
-
-    const konter = JSON.parse(localStorage.getItem(KEY_KONTER) || '[]');
-    const warung = JSON.parse(localStorage.getItem(KEY_WARUNG + '_transaksi') || '[]');
-    const manual = JSON.parse(localStorage.getItem(KEY_MANUAL) || '[]');
-    const raikinet = JSON.parse(localStorage.getItem(KEY_RAIKINET + '_transaksi') || '[]');
-    const pengeluaran = JSON.parse(localStorage.getItem(KEY_PENGELUARAN) || '[]');
-
-    let totalFee = 0;
-    let totalHarga = 0;
-    let totalPengeluaran = 0;
-
-    function addRows(data, jenis) {
-      data.forEach(item => {
-        tbody.innerHTML += `<tr>
-          <td>${jenis}</td>
-          <td>${item.nama || item.ket}</td>
-          <td>${item.jumlah || '-'}</td>
-          <td>${item.fee || 0}</td>
-          <td>${item.harga || 0}</td>
-        </tr>`;
-        totalFee += item.fee || 0;
-        totalHarga += item.harga || 0;
+    function loadPembayaran() {
+      statusPembayaran.innerHTML = "";
+      db.collection("pembayaran").orderBy('tanggal', 'desc').get().then(snapshot => {
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          const li = document.createElement("li");
+          li.textContent = `${d.bulan} - ${d.id_pelanggan} - ${d.status}`;
+          statusPembayaran.appendChild(li);
+        });
       });
     }
-    addRows(konter, 'Konter');
-    addRows(warung, 'Warung');
-    addRows(manual, 'Manual');
-    addRows(raikinet, 'Raikinet');
-    pengeluaran.forEach(item => {
-      tbody.innerHTML += `<tr>
-        <td>Pengeluaran</td>
-        <td>${item.ket}</td>
-        <td>-</td>
-        <td>0</td>
-        <td>-${item.jumlah}</td>
-      </tr>`;
-      totalPengeluaran += item.jumlah;
-    });
-
-    document.getElementById('total-fee').textContent = totalFee.toLocaleString();
-    document.getElementById('total-harga-jual').textContent = totalHarga.toLocaleString();
-    document.getElementById('total-pengeluaran').textContent = totalPengeluaran.toLocaleString();
-    document.getElementById('saldo-bersih').textContent = (totalHarga - totalPengeluaran).toLocaleString();
-  }
-
-  // --- Update total uang di bawah ---
-  function updateTotalUang() {
-    const konter = JSON.parse(localStorage.getItem(KEY_KONTER) || '[]');
-    const warung = JSON.parse(localStorage.getItem(KEY_WARUNG + '_transaksi') || '[]');
-    const manual = JSON.parse(localStorage.getItem(KEY_MANUAL) || '[]');
-    const raikinet = JSON.parse(localStorage.getItem(KEY_RAIKINET + '_transaksi') || '[]');
-    const pengeluaran = JSON.parse(localStorage.getItem(KEY_PENGELUARAN) || '[]');
-
-    let total = 0;
-    konter.forEach(item => total += item.harga);
-    warung.forEach(item => total += item.harga);
-    manual.forEach(item => total += item.harga);
-    raikinet.forEach(item => total += item.harga);
-    pengeluaran.forEach(item => total -= item.jumlah);
-
-    document.getElementById('total-uang').textContent = total.toLocaleString();
-  }
-
-  // --- Helper clear input ---
-  function clearInputs(ids) {
-    ids.forEach(id => {
-      document.getElementById(id).value = '';
-    });
-  }
-
-  // Init semua tabel dan dropdown saat load halaman
-  function updateAllTables() {
-    updateTabelKonter();
-    updateTabelWarung();
-    updateTabelManual();
-    updateTabelEditWarung();
-    updateTabelRaikinet();
-    updateTabelEditRaikicell();
-    updateTabelPengeluaran();
-    updateLaporan();
-    isiDropdownWarung();
-    isiDropdownRaikinet();
-  }
-
-  updateAllTables();
-  updateTotalUang();
-
-</script>
-
+  </script>
 </body>
 </html>
