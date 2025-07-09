@@ -23,11 +23,22 @@
     const db = getFirestore(app);
 
     document.addEventListener("DOMContentLoaded", () => {
-      const form = document.getElementById("pelanggan-form");
-      const tableBody = document.getElementById("pelanggan-table-body");
+      const pelangganForm = document.getElementById("pelanggan-form");
+      const pelangganTableBody = document.getElementById("pelanggan-table-body");
+      const tagihanForm = document.getElementById("tagihan-form");
+      const tagihanTableBody = document.getElementById("tagihan-table-body");
+
+      function showSection(section) {
+        document.getElementById("section-pelanggan").classList.add("hidden");
+        document.getElementById("section-tagihan").classList.add("hidden");
+        document.getElementById(section).classList.remove("hidden");
+      }
+
+      document.getElementById("btn-pelanggan").addEventListener("click", () => showSection("section-pelanggan"));
+      document.getElementById("btn-tagihan").addEventListener("click", () => showSection("section-tagihan"));
 
       async function loadPelanggan() {
-        tableBody.innerHTML = "";
+        pelangganTableBody.innerHTML = "";
         const snapshot = await getDocs(collection(db, "pelanggan"));
         snapshot.forEach((docSnap) => {
           const data = docSnap.data();
@@ -43,31 +54,31 @@
               <button class="delete-btn text-red-500" data-id="${docSnap.id}">Hapus</button>
             </td>
           `;
-          tableBody.appendChild(row);
+          pelangganTableBody.appendChild(row);
         });
       }
 
-      form.addEventListener("submit", async (e) => {
+      pelangganForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const id = form.dataset.editId;
+        const id = pelangganForm.dataset.editId;
         const data = {
-          nama: form.nama.value,
-          nohp: form.nohp.value,
-          tipe: form.tipe.value,
-          tanggal: form.tanggal.value
+          nama: pelangganForm.nama.value,
+          nohp: pelangganForm.nohp.value,
+          tipe: pelangganForm.tipe.value,
+          tanggal: pelangganForm.tanggal.value
         };
 
         if (id) {
           await updateDoc(doc(db, "pelanggan", id), data);
-          form.removeAttribute("data-edit-id");
+          pelangganForm.removeAttribute("data-edit-id");
         } else {
           await addDoc(collection(db, "pelanggan"), data);
         }
-        form.reset();
+        pelangganForm.reset();
         loadPelanggan();
       });
 
-      tableBody.addEventListener("click", async (e) => {
+      pelangganTableBody.addEventListener("click", async (e) => {
         if (e.target.classList.contains("delete-btn")) {
           const id = e.target.dataset.id;
           await deleteDoc(doc(db, "pelanggan", id));
@@ -80,17 +91,42 @@
           snapshot.forEach((docSnap) => {
             if (docSnap.id === id) {
               const data = docSnap.data();
-              form.nama.value = data.nama;
-              form.nohp.value = data.nohp;
-              form.tipe.value = data.tipe;
-              form.tanggal.value = data.tanggal;
-              form.dataset.editId = id;
+              pelangganForm.nama.value = data.nama;
+              pelangganForm.nohp.value = data.nohp;
+              pelangganForm.tipe.value = data.tipe;
+              pelangganForm.tanggal.value = data.tanggal;
+              pelangganForm.dataset.editId = id;
             }
           });
         }
       });
 
+      async function loadTagihan() {
+        tagihanTableBody.innerHTML = "";
+        const snapshot = await getDocs(collection(db, "tagihan"));
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td class='p-2'>${data.nama}</td>
+            <td class='p-2'>${data.jumlah}</td>
+          `;
+          tagihanTableBody.appendChild(row);
+        });
+      }
+
+      tagihanForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        await addDoc(collection(db, "tagihan"), {
+          nama: tagihanForm.nama.value,
+          jumlah: tagihanForm.jumlah.value
+        });
+        tagihanForm.reset();
+        loadTagihan();
+      });
+
       loadPelanggan();
+      loadTagihan();
     });
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -113,36 +149,66 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body class="bg-background text-cyber font-cyber min-h-screen">
-  <header class="bg-gradient-to-r from-cyber to-accent text-black p-4 text-3xl font-bold text-center shadow-xl">RNV Net Dashboard</header>
+  <header class="flex justify-between items-center p-4 bg-gradient-to-r from-cyber to-accent">
+    <img src="/mnt/data/WhatsApp Image 2025-07-09 at 21.05.20.jpeg" alt="RNV Logo" class="h-12 rounded" />
+    <h1 class="text-3xl font-bold">RNV Net Dashboard</h1>
+  </header>
 
   <main class="p-6 max-w-6xl mx-auto">
-    <h2 class="text-2xl text-accent font-semibold mb-6">📡 Data Pelanggan</h2>
-
-    <form id="pelanggan-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/30 p-6 rounded-xl border border-cyber shadow-lg backdrop-blur">
-      <input type="text" name="nama" placeholder="Nama Pelanggan" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
-      <input type="text" name="nohp" placeholder="No HP / WhatsApp" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
-      <select name="tipe" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
-        <option value="PPPoE">PPPoE</option>
-        <option value="Voucher">Voucher</option>
-      </select>
-      <input type="date" name="tanggal" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
-      <button type="submit" class="col-span-full bg-cyber text-black py-3 rounded font-bold hover:bg-white transition">💾 Simpan Data</button>
-    </form>
-
-    <div class="overflow-x-auto mt-8">
-      <table class="min-w-full text-sm bg-black/40 border border-cyber rounded-xl">
-        <thead class="bg-cyber text-black">
-          <tr>
-            <th class="p-3 text-left">Nama</th>
-            <th class="p-3 text-left">No HP</th>
-            <th class="p-3 text-left">Tipe</th>
-            <th class="p-3 text-left">Tanggal</th>
-            <th class="p-3 text-right">Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="pelanggan-table-body"></tbody>
-      </table>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <button id="btn-pelanggan" class="bg-cyber text-black py-4 rounded-lg font-bold text-xl hover:bg-white transition">📡 Data Pelanggan</button>
+      <button id="btn-tagihan" class="bg-accent text-black py-4 rounded-lg font-bold text-xl hover:bg-white transition">💸 List Tagihan</button>
     </div>
+
+    <!-- Data Pelanggan Section -->
+    <section id="section-pelanggan" class="hidden">
+      <h2 class="text-2xl text-accent font-semibold mb-4">📡 Data Pelanggan</h2>
+      <form id="pelanggan-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/30 p-6 rounded-xl border border-cyber">
+        <input type="text" name="nama" placeholder="Nama Pelanggan" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
+        <input type="text" name="nohp" placeholder="No HP / WhatsApp" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
+        <select name="tipe" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
+          <option value="PPPoE">PPPoE</option>
+          <option value="Voucher">Voucher</option>
+        </select>
+        <input type="date" name="tanggal" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
+        <button type="submit" class="col-span-full bg-cyber text-black py-3 rounded font-bold hover:bg-white transition">💾 Simpan Data</button>
+      </form>
+      <div class="overflow-x-auto mt-6">
+        <table class="min-w-full text-sm bg-black/40 border border-cyber rounded-xl">
+          <thead class="bg-cyber text-black">
+            <tr>
+              <th class="p-3 text-left">Nama</th>
+              <th class="p-3 text-left">No HP</th>
+              <th class="p-3 text-left">Tipe</th>
+              <th class="p-3 text-left">Tanggal</th>
+              <th class="p-3 text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="pelanggan-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- List Tagihan Section -->
+    <section id="section-tagihan" class="hidden">
+      <h2 class="text-2xl text-accent font-semibold mb-4">💸 List Tagihan</h2>
+      <form id="tagihan-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/30 p-6 rounded-xl border border-cyber">
+        <input type="text" name="nama" placeholder="Nama Pelanggan" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
+        <input type="text" name="jumlah" placeholder="Nominal Tagihan" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
+        <button type="submit" class="col-span-full bg-accent text-black py-3 rounded font-bold hover:bg-white transition">💾 Tambah Tagihan</button>
+      </form>
+      <div class="overflow-x-auto mt-6">
+        <table class="min-w-full text-sm bg-black/40 border border-cyber rounded-xl">
+          <thead class="bg-accent text-black">
+            <tr>
+              <th class="p-3 text-left">Nama</th>
+              <th class="p-3 text-left">Tagihan</th>
+            </tr>
+          </thead>
+          <tbody id="tagihan-table-body"></tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </body>
 </html>
