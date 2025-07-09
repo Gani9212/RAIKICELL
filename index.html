@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RNV Net - Dashboard</title>
   <script type="module">
-    // Firebase setup
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCoI53ZeXyaOBCOaczkPbHJpWzi0DX4b8g",
@@ -23,78 +22,127 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Dom Ready
     document.addEventListener("DOMContentLoaded", () => {
-      const pelangganForm = document.getElementById("pelanggan-form");
-      const pelangganTable = document.getElementById("pelanggan-table-body");
+      const form = document.getElementById("pelanggan-form");
+      const tableBody = document.getElementById("pelanggan-table-body");
 
-      async function renderPelanggan() {
-        pelangganTable.innerHTML = "";
+      async function loadPelanggan() {
+        tableBody.innerHTML = "";
         const snapshot = await getDocs(collection(db, "pelanggan"));
-        snapshot.forEach(docSnap => {
+        snapshot.forEach((docSnap) => {
           const data = docSnap.data();
           const row = document.createElement("tr");
+          row.className = "hover:bg-purple-900/30 transition";
           row.innerHTML = `
-            <td>${data.nama}</td>
-            <td>${data.nohp}</td>
-            <td>${data.tipe}</td>
-            <td>${data.tanggal}</td>
-            <td class="text-right">
-              <button class="text-blue-500">Edit</button>
-              <button class="text-red-500 ml-2">Hapus</button>
+            <td class='p-2'>${data.nama}</td>
+            <td class='p-2'>${data.nohp}</td>
+            <td class='p-2'>${data.tipe}</td>
+            <td class='p-2'>${data.tanggal}</td>
+            <td class='p-2 text-right'>
+              <button class="edit-btn text-yellow-400 mr-2" data-id="${docSnap.id}">Edit</button>
+              <button class="delete-btn text-red-500" data-id="${docSnap.id}">Hapus</button>
             </td>
           `;
-          pelangganTable.appendChild(row);
+          tableBody.appendChild(row);
         });
       }
 
-      pelangganForm.addEventListener("submit", async (e) => {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const form = e.target;
-        await addDoc(collection(db, "pelanggan"), {
+        const id = form.dataset.editId;
+        const data = {
           nama: form.nama.value,
           nohp: form.nohp.value,
           tipe: form.tipe.value,
           tanggal: form.tanggal.value
-        });
+        };
+
+        if (id) {
+          await updateDoc(doc(db, "pelanggan", id), data);
+          form.removeAttribute("data-edit-id");
+        } else {
+          await addDoc(collection(db, "pelanggan"), data);
+        }
         form.reset();
-        renderPelanggan();
+        loadPelanggan();
       });
 
-      renderPelanggan();
+      tableBody.addEventListener("click", async (e) => {
+        if (e.target.classList.contains("delete-btn")) {
+          const id = e.target.dataset.id;
+          await deleteDoc(doc(db, "pelanggan", id));
+          loadPelanggan();
+        }
+
+        if (e.target.classList.contains("edit-btn")) {
+          const id = e.target.dataset.id;
+          const snapshot = await getDocs(collection(db, "pelanggan"));
+          snapshot.forEach((docSnap) => {
+            if (docSnap.id === id) {
+              const data = docSnap.data();
+              form.nama.value = data.nama;
+              form.nohp.value = data.nohp;
+              form.tipe.value = data.tipe;
+              form.tanggal.value = data.tanggal;
+              form.dataset.editId = id;
+            }
+          });
+        }
+      });
+
+      loadPelanggan();
     });
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cyber: '#0ff',
+            background: '#0d0d0d',
+            accent: '#ff00ff'
+          },
+          fontFamily: {
+            cyber: ['"Orbitron"', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-100 text-gray-800">
-  <header class="bg-blue-900 text-white p-4 text-xl font-bold">RNV Net Dashboard</header>
+<body class="bg-background text-cyber font-cyber min-h-screen">
+  <header class="bg-gradient-to-r from-cyber to-accent text-black p-4 text-3xl font-bold text-center shadow-xl">RNV Net Dashboard</header>
 
-  <main class="p-6 max-w-5xl mx-auto">
-    <h2 class="text-2xl font-semibold mb-4">Data Pelanggan</h2>
+  <main class="p-6 max-w-6xl mx-auto">
+    <h2 class="text-2xl text-accent font-semibold mb-6">📡 Data Pelanggan</h2>
 
-    <form id="pelanggan-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-4 rounded shadow">
-      <input type="text" name="nama" placeholder="Nama Pelanggan" required class="border p-2 rounded">
-      <input type="text" name="nohp" placeholder="No HP / WhatsApp" required class="border p-2 rounded">
-      <select name="tipe" required class="border p-2 rounded">
+    <form id="pelanggan-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/30 p-6 rounded-xl border border-cyber shadow-lg backdrop-blur">
+      <input type="text" name="nama" placeholder="Nama Pelanggan" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
+      <input type="text" name="nohp" placeholder="No HP / WhatsApp" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
+      <select name="tipe" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
         <option value="PPPoE">PPPoE</option>
         <option value="Voucher">Voucher</option>
       </select>
-      <input type="date" name="tanggal" required class="border p-2 rounded">
-      <button type="submit" class="col-span-full bg-blue-700 text-white py-2 rounded hover:bg-blue-800">Simpan</button>
+      <input type="date" name="tanggal" required class="bg-black/50 text-cyber border-cyber border p-3 rounded">
+      <button type="submit" class="col-span-full bg-cyber text-black py-3 rounded font-bold hover:bg-white transition">💾 Simpan Data</button>
     </form>
 
-    <table class="table-auto w-full mt-6 bg-white rounded shadow">
-      <thead class="bg-blue-100">
-        <tr>
-          <th class="p-2 text-left">Nama</th>
-          <th class="p-2 text-left">No HP</th>
-          <th class="p-2 text-left">Tipe</th>
-          <th class="p-2 text-left">Tanggal Pasang</th>
-          <th class="p-2 text-right">Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="pelanggan-table-body"></tbody>
-    </table>
+    <div class="overflow-x-auto mt-8">
+      <table class="min-w-full text-sm bg-black/40 border border-cyber rounded-xl">
+        <thead class="bg-cyber text-black">
+          <tr>
+            <th class="p-3 text-left">Nama</th>
+            <th class="p-3 text-left">No HP</th>
+            <th class="p-3 text-left">Tipe</th>
+            <th class="p-3 text-left">Tanggal</th>
+            <th class="p-3 text-right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="pelanggan-table-body"></tbody>
+      </table>
+    </div>
   </main>
 </body>
 </html>
